@@ -77,6 +77,14 @@ CREATE TABLE usuario_cargo (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_cargo) REFERENCES cargo(id_cargo)
 );
+-- Version mejorada:
+CREATE TABLE usuario_cargo (
+    id_usuario INT NOT NULL,
+    id_cargo INT NOT NULL,
+    PRIMARY KEY (id_usuario, id_cargo),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
+    FOREIGN KEY (id_cargo) REFERENCES cargo(id_cargo) ON DELETE CASCADE
+);
 
 CREATE TABLE usuario_programa_estudio (
     id_usuario_programa INT PRIMARY KEY AUTO_INCREMENT,
@@ -180,4 +188,3 @@ CREATE TABLE archivo (
     fecha_archivado DATETIME,
     FOREIGN KEY (id_documento) REFERENCES documento(id_documento)
 );
-

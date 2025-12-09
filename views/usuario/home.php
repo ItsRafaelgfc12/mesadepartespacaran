@@ -1,3 +1,23 @@
+<?php
+session_start();
+if (!isset($_SESSION["id_usuario"])) {
+    header("Location: ../../index.php");
+    exit;
+}
+
+// vista por defecto (si no se envía ?vista=... usa "inicio")
+$vista = $_GET["vista"] ?? "inicio";
+
+if (!isset($_SESSION["id_usuario"])) {
+    header("Location: ../../index.php");
+    exit;
+}
+
+// Si por algún motivo no hay cargos asignados, inicializar como array vacío
+if (!isset($_SESSION['cargos'])) {
+    $_SESSION['cargos'] = [];
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -99,33 +119,35 @@
                 </div>
             </li>
 
+<?php if (in_array("Docente", $_SESSION['cargos'])): ?>
+    <!-- Separador -->
+    <hr class="sidebar-divider">
 
+    <!-- Cabecera -->
+    <div class="sidebar-heading">
+        Curso capacitación
+    </div>
+
+    <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCurso"
+            aria-expanded="true" aria-controls="collapseCurso">
+            <i class="fas fa-fw fa-file-alt"></i>
+            <span>Curso - Capacitación</span>
+        </a>
+        <div id="collapseCurso" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Acciones:</h6>
+                <a class="collapse-item" href="buttons.html">Crear nuevo Curso - Capacitacion</a>
+                <?php if (in_array("Docente", $_SESSION['cargos'])): ?>
+                <a class="collapse-item" href="cards.html">Administrar curso capacitacion</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </li>
+<?php endif; ?>
 
             <!-- Separaddor -->
-            <hr class="sidebar-divider">
-
-            <!-- Cabecera -->
-            <div class="sidebar-heading">
-                Plantillas
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTree"
-                    aria-expanded="true" aria-controls="collapseTree">
-                    <i class="fas fa-fw fa-file-alt"></i>
-                    <span>Plantillas</span>
-                </a>
-                <div id="collapseTree" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Acciones:</h6>
-                        <a class="collapse-item" href="buttons.html">Ver plantillas</a>
-                        <a class="collapse-item" href="cards.html">Administrar</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Divider -->
             <hr class="sidebar-divider">
 
             <!-- Sidebar Toggler (Sidebar) -->
@@ -218,7 +240,7 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                    <?php echo $_SESSION["nombre"]; ?>
+                                    <?php echo $_SESSION["nombre"] . " " . $_SESSION["apellido"]; ?>
                                 </span>
                                 <img class="img-profile rounded-circle"
                                     src="../../img/undraw_profile.svg">
@@ -253,10 +275,14 @@
 
                 <!-- Contenedor para vistas -->
                 <div class="container-fluid">
-
-                    <!-- Titulo de contenedor para vistas -->
-                    <h1 class="h3 mb-4 text-gray-800">Inicio</h1>
-
+                    <?php
+                    $ruta = "vistas/$vista.php";
+                    if (file_exists($ruta)) {
+                        include $ruta;
+                    } else {
+                        echo "<h3 class='text-danger'>⚠️ La vista '$vista' no existe.</h3>";
+                    }
+                    ?>
                 </div>
 
             </div>
