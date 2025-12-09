@@ -30,7 +30,7 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Bienvenido</h1>
                                     </div>
-                                    <form class="user" method="POST" action="validar_login.php">
+                                    <form class="user" method="POST" action="librerias/validar_login.php">
                                         <div class="form-group">
                                             <input type="email" name="email_per" id="email_pe" class="form-control form-control-user"
                                                 placeholder="Ingresa tu correo" required>

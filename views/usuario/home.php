@@ -1,13 +1,3 @@
-<?php
-session_start();
-if (!isset($_SESSION["id_usuario"])) {
-    header("Location: ../../index.php");
-    exit;
-}
-
-// vista por defecto (si no se envía ?vista=... usa "inicio")
-$vista = $_GET["vista"] ?? "inicio";
-?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -77,7 +67,7 @@ $vista = $_GET["vista"] ?? "inicio";
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Tramites disponibles:</h6>
-                        <a class="collapse-item" href="home.php?vista=fut/crear">FUT</a>
+                        <a class="collapse-item" href="buttons.html">FUT</a>
                         <a class="collapse-item" href="cards.html">Requerimiento</a>
                     </div>
                 </div>
@@ -116,20 +106,20 @@ $vista = $_GET["vista"] ?? "inicio";
 
             <!-- Cabecera -->
             <div class="sidebar-heading">
-                Usuarios
+                Plantillas
             </div>
 
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFour"
-                    aria-expanded="true" aria-controls="collapseFour">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTree"
+                    aria-expanded="true" aria-controls="collapseTree">
                     <i class="fas fa-fw fa-file-alt"></i>
-                    <span>Usuarios  </span>
+                    <span>Plantillas</span>
                 </a>
-                <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
+                <div id="collapseTree" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Acciones:</h6>
-                        <a class="collapse-item" href="buttons.html">Agregar</a>
+                        <a class="collapse-item" href="buttons.html">Ver plantillas</a>
                         <a class="collapse-item" href="cards.html">Administrar</a>
                     </div>
                 </div>
@@ -147,7 +137,7 @@ $vista = $_GET["vista"] ?? "inicio";
         <!-- End of Sidebar -->
 
         <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column min-vh-100">
+        <div id="content-wrapper" class="d-flex flex-column">
 
             <!-- Main Content -->
             <div id="content">
@@ -228,7 +218,7 @@ $vista = $_GET["vista"] ?? "inicio";
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
-                                    <?php echo $_SESSION["nombre"] . " " . $_SESSION["apellido"]; ?>
+                                    <?php echo $_SESSION["nombre"]; ?>
                                 </span>
                                 <img class="img-profile rounded-circle"
                                     src="../../img/undraw_profile.svg">
@@ -263,27 +253,23 @@ $vista = $_GET["vista"] ?? "inicio";
 
                 <!-- Contenedor para vistas -->
                 <div class="container-fluid">
-                    <?php
-                    $ruta = "vistas/$vista.php";
-                    if (file_exists($ruta)) {
-                        include $ruta;
-                    } else {
-                        echo "<h3 class='text-danger'>⚠️ La vista '$vista' no existe.</h3>";
-                    }
-                    ?>
+
+                    <!-- Titulo de contenedor para vistas -->
+                    <h1 class="h3 mb-4 text-gray-800">Inicio</h1>
+
                 </div>
 
             </div>
             <!-- End of Main Content -->
 
             <!-- Footer -->
-            <footer class="sticky-footer bg-white mt-auto">
-        <div class="container my-auto">
-            <div class="copyright text-center my-auto">
-                <span>Copyright &copy; Mesa de partes IES Pacarán 2025</span>
-            </div>
-        </div>
-    </footer>
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Mesa de partes IES Pacarán 2025</span>
+                    </div>
+                </div>
+            </footer>
             <!-- Fin de Footer -->
 
         </div>
@@ -297,7 +283,6 @@ $vista = $_GET["vista"] ?? "inicio";
         <i class="fas fa-angle-up"></i>
     </a>
 
-    
     <!-- Modal de salida -->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
