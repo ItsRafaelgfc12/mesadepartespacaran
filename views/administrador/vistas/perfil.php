@@ -112,35 +112,36 @@
         <button type="button" class="btn btn-secondary" onclick="openModal()">Cambiar Contraseña</button>
 
     </form>
-<div class="modal" id="passwordModal">
-    <div class="modal-content">
-        <h3>Cambiar Contraseña</h3>
 
-        <form action="cambiar_password.php" method="POST" onsubmit="return validarPassword()">
 
-            <div class="form-group">
-                <label>Contraseña Actual</label>
-                <input type="password" name="password_actual" required>
-            </div>
+    <div class="modal" id="passwordModal">
+        <div class="modal-content">
+            <h3>Cambiar Contraseña</h3>
+            <form action="cambiar_password.php" method="POST" onsubmit="return validarPassword()">
 
-            <div class="form-group">
-                <label>Nueva Contraseña</label>
-                <input type="password" id="nueva" name="password_nueva" required>
-            </div>
+                <div class="form-group">
+                    <label>Contraseña Actual</label>
+                    <input type="password" name="password_actual" required>
+                </div>
 
-            <div class="form-group">
-                <label>Confirmar Nueva Contraseña</label>
-                <input type="password" id="confirmar" required>
-            </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" id="nueva" name="password_nueva" required>
+                </div>
 
-            <br>
+                <div class="form-group">
+                    <label>Confirmar Nueva Contraseña</label>
+                    <input type="password" id="confirmar" required>
+                </div>
 
-            <button type="submit" class="btn">Actualizar</button>
-            <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <br>
 
-        </form>
+                <button type="submit" class="btn">Actualizar</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+
+            </form>
+        </div>
     </div>
-</div>
 </div>
 </div>
 
