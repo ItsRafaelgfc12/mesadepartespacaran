@@ -57,16 +57,16 @@ CREATE TABLE usuario (
     url_foto_usuario VARCHAR(50),
     url_dni_usuario VARCHAR(50),
     url_firma VARCHAR(50),
-    id_dep VARCHAR(2),
-    id_prov VARCHAR(4),
-    id_dis VARCHAR(6),
+    id_dep INT,
+    id_prov INT,
+    id_dis INT,
     created_at DATETIME,
     last_session DATETIME,
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
     FOREIGN KEY (id_area) REFERENCES area(id_area),
-    FOREIGN KEY (id_dep) REFERENCES ubigeo_peru_departments(id),
-    FOREIGN KEY (id_prov) REFERENCES ubigeo_peru_provinces(id),
-    FOREIGN KEY (id_dis) REFERENCES ubigeo_peru_districts(id)
+    FOREIGN KEY (id_dep) REFERENCES departamento(id_departamento),
+    FOREIGN KEY (id_prov) REFERENCES provincia(id_provincia),
+    FOREIGN KEY (id_dis) REFERENCES distrito(id_dis)
 );
 
 

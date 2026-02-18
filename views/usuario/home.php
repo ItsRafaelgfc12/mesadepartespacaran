@@ -5,7 +5,6 @@ if (!isset($_SESSION["id_usuario"])) {
     exit;
 }
 
-// vista por defecto (si no se envía ?vista=... usa "inicio")
 $vista = $_GET["vista"] ?? "inicio";
 
 if (!isset($_SESSION["id_usuario"])) {
@@ -13,7 +12,6 @@ if (!isset($_SESSION["id_usuario"])) {
     exit;
 }
 
-// Si por algún motivo no hay cargos asignados, inicializar como array vacío
 if (!isset($_SESSION['cargos'])) {
     $_SESSION['cargos'] = [];
 }
@@ -248,7 +246,7 @@ if (!isset($_SESSION['cargos'])) {
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="perfil.php">
+                                <a class="dropdown-item" href="home.php?perfil">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Perfil
                                 </a>

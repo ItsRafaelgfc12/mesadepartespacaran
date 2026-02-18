@@ -19,17 +19,14 @@ $vista = $_GET["vista"] ?? "inicio";
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../img/LOGIESPACARAN.png" type="image/png">
-    <link rel="stylesheet" href="../../css/style.css">
-    <title>Inicio</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+        <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-
-    <!-- Custom styles for this template-->
     <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>Inicio</title>
+
 
 </head>
 
@@ -79,6 +76,9 @@ $vista = $_GET["vista"] ?? "inicio";
                         <h6 class="collapse-header">Tramites disponibles:</h6>
                         <a class="collapse-item" href="home.php?vista=fut/crear">FUT</a>
                         <a class="collapse-item" href="home.php?vista=requerimiento/crear">Requerimiento</a>
+                        <h6 class="collapse-header">Documentos:</h6>
+                        <a class="collapse-item" href="home.php?vista=documentos/pendiente">Pendiente temporal</a>
+                        <a class="collapse-item" href="home.php?vista=documentos/enviar">Enviar</a>
                     </div>
                 </div>
             </li>
@@ -105,7 +105,7 @@ $vista = $_GET["vista"] ?? "inicio";
                         <h6 class="collapse-header">Acciones:</h6>
                         <a class="collapse-item" href="home.php?vista=plantillas/ver">Ver plantillas</a>
                         <a class="collapse-item" href="home.php?vista=plantillas/administrar">Administrar</a>
-                        <a clas s="collapse-item" href="home.php?vista=plantillas/subirplantilla">Subir plantilla</a>
+                        <a class="collapse-item" href="home.php?vista=plantillas/subirplantilla">Subir plantilla</a>
                     </div>
                 </div>
             </li>
@@ -130,12 +130,38 @@ $vista = $_GET["vista"] ?? "inicio";
                 <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Acciones:</h6>
-                        <a class="collapse-item" href="buttons.html">Agregar</a>
-                        <a class="collapse-item" href="cards.html">Administrar</a>
+                        <a class="collapse-item" href="home.php?vista=usuarios/registrar">Agregar</a>
+                        <a class="collapse-item" href="home.php?vista=usuarios/administrar">Administrar</a>
                     </div>
                 </div>
             </li>
 
+
+
+
+            <!-- Separaddor -->
+            <hr class="sidebar-divider">
+
+            <!-- Cabecera -->
+            <div class="sidebar-heading">
+                Eventos
+            </div>
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFive"
+                    aria-expanded="true" aria-controls="collapseFive">
+                    <i class="fas fa-fw fa-file-alt"></i>
+                    <span>Eventos  </span>
+                </a>
+                <div id="collapseFive" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Acciones:</h6>
+                        <a class="collapse-item" href="home.php?vista=eventos/crear">Crear</a>
+                        <a class="collapse-item" href="home.php?vista=eventos/administrar">Administrar</a>
+                    </div>
+                </div>
+            </li>
 
 
             <!-- Separaddor -->
@@ -148,16 +174,19 @@ $vista = $_GET["vista"] ?? "inicio";
 
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFive"
-                    aria-expanded="true" aria-controls="collapseFive">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSix"
+                    aria-expanded="true" aria-controls="collapseSix">
                     <i class="fas fa-fw fa-file-alt"></i>
                     <span>Configurar  </span>
                 </a>
-                <div id="collapseFive" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
+                <div id="collapseSix" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Areas:</h6>
-                        <a class="collapse-item" href="buttons.html">Cargos</a>
-                        <a class="collapse-item" href="cards.html">Tipo FUT</a>
+                        <h6 class="collapse-header">Acciones:</h6>
+                        <a class="collapse-item" href="home.php?vista=configurar/programa_estudio">Programa de estudio</a>
+                        <a class="collapse-item" href="home.php?vista=configurar/rol">Rol</a>
+                        <a class="collapse-item" href="home.php?vista=configurar/areas">Areas</a>
+                        <a class="collapse-item" href="home.php?vista=configurar/cargos">Cargos</a>
+                        <a class="collapse-item" href="home.php?vista=configurar/tipofut">Tipo FUT</a>
                     </div>
                 </div>
             </li>
@@ -263,7 +292,7 @@ $vista = $_GET["vista"] ?? "inicio";
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="perfil.php">
+                                <a class="dropdown-item" href="home.php?vista=perfil">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Perfil
                                 </a>
@@ -295,7 +324,7 @@ $vista = $_GET["vista"] ?? "inicio";
                     if (file_exists($ruta)) {
                         include $ruta;
                     } else {
-                        echo "<h3 class='text-danger'>⚠️ La vista '$vista' no existe.</h3>";
+                        echo "<h3 class='text-danger'>La vista '$vista' no existe.</h3>";
                     }
                     ?>
                 </div>
