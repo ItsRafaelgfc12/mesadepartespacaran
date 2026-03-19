@@ -1,6 +1,5 @@
     <h1 class="h3 mb-4 text-gray-800">Crear fut</h1>
 <head>
-    <meta charset="UTF-8">
     <title>Formato Único de Trámite (FUT)</title>
     <style>
         body {
@@ -124,13 +123,13 @@
     </div>
 
     <div class="form-group">
-        <label>Firma del solicitante:</label>
-        <input type="text" name="firma" placeholder="Escriba su nombre completo">
+        <label>Documentos anexados (Recuerde que todos los documentos deben estar en un solo PDF):
+            <a href="https://www.ilovepdf.com/es/unir_pdf" target="_blank">UNIR PDF</a>
+        </label>
+        <input type="file" name="doc_anexado">
     </div>
 
     <br>
     <button type="submit" class="btn">Enviar Solicitud</button>
 
 </form>
-
-</body>
