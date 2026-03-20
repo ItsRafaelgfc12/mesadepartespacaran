@@ -1,135 +1,135 @@
-    <h1 class="h3 mb-4 text-gray-800">Crear fut</h1>
-<head>
-    <title>Formato Único de Trámite (FUT)</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        h2 {
-            text-align: center;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        textarea {
-            resize: vertical;
-        }
-        .row {
-            display: flex;
-            gap: 15px;
-        }
-        .row .form-group {
-            flex: 1;
-        }
-        .btn {
-            padding: 10px 20px;
-            background-color: #2c3e50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover {
-            background-color: #34495e;
-        }
-    </style>
-</head>
-<body>
+<h1 class="h3 mb-4 text-gray-800">
+    <i class="fas fa-file-alt text-primary"></i> Crear FUT
+</h1>
 
-<h2>FORMATO ÚNICO DE TRÁMITE (FUT)</h2>
+<div class="container">
 
-<form action="#" method="post">
+    <div class="card shadow mb-4">
+        <div class="card-body">
 
-    <div class="form-group">
-        <label>Dependencia o autoridad a la que se dirige:</label>
-        <input type="text" name="dependencia" required>
-    </div>
+            <h5 class="text-center font-weight-bold mb-4">
+                FORMATO ÚNICO DE TRÁMITE (FUT)
+            </h5>
 
-    <hr>
+            <form action="#" method="POST" enctype="multipart/form-data">
 
-    <h3>1. Datos del Solicitante</h3>
+                <!-- DEPENDENCIA -->
+                <div class="form-group">
+                    <label><i class="fas fa-building"></i> Dependencia o autoridad</label>
+                    <input type="text" name="dependencia" class="form-control" placeholder="Ej: Dirección Académica" required>
+                </div>
 
-    <div class="row">
-        <div class="form-group">
-            <label>Nombres:</label>
-            <input type="text" name="nombres" required>
+                <!-- DATOS DEL SOLICITANTE -->
+                <div class="mb-4">
+                    <h5 class="text-primary border-bottom pb-2">
+                        <i class="fas fa-user"></i> 1. Datos del Solicitante
+                    </h5>
+
+                    <div class="form-row mt-3">
+                        <div class="form-group col-md-6">
+                            <label>Nombres</label>
+                            <input type="text" name="nombres" class="form-control" required>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label>Apellidos</label>
+                            <input type="text" name="apellidos" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label><i class="fas fa-id-badge"></i> Tipo de Documento</label>
+                            <select name="tipo_documento" class="form-control" required>
+                                <option value="">Seleccione</option>
+                                <option value="dni">DNI</option>
+                                <option value="ce">Carné de Extranjería</option>
+                                <option value="pasaporte">Pasaporte</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label><i class="fas fa-hashtag"></i> Número de Documento</label>
+                            <input type="text" name="numero_documento" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-map"></i> Dirección</label>
+                        <input type="text" name="direccion" class="form-control">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label><i class="fas fa-phone"></i> Teléfono</label>
+                            <input type="text" name="telefono" class="form-control">
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                            <input type="email" name="correo" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETALLE -->
+                <div class="mb-4">
+                    <h5 class="text-primary border-bottom pb-2">
+                        <i class="fas fa-file-signature"></i> 2. Detalle de la Solicitud
+                    </h5>
+
+                    <div class="form-group mt-3">
+                        <label><i class="fas fa-heading"></i> Asunto</label>
+                        <input type="text" name="asunto" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left"></i> Descripción</label>
+                        <textarea name="descripcion" rows="5" class="form-control" placeholder="Detalle su solicitud..." required></textarea>
+                    </div>
+                </div>
+
+                <!-- FECHA Y ARCHIVOS -->
+                <div class="mb-4">
+                    <h5 class="text-primary border-bottom pb-2">
+                        <i class="fas fa-paperclip"></i> Información Adicional
+                    </h5>
+
+                    <div class="form-group mt-3">
+                        <label><i class="fas fa-calendar-alt"></i> Fecha</label>
+                        <input type="date" name="fecha" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-file-pdf"></i> Documentos anexados (PDF)
+                        </label>
+
+                        <input type="file" name="doc_anexado" class="form-control-file">
+
+                        <small class="form-text text-muted">
+                            Todos los documentos deben estar en un solo archivo PDF.
+                            <a href="https://www.ilovepdf.com/es/unir_pdf" target="_blank">
+                                Unir PDF aquí
+                            </a>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="d-flex justify-content-between">
+                    <a href="fut_listado.php" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                    </button>
+                </div>
+
+            </form>
+
         </div>
-        <div class="form-group">
-            <label>Apellidos:</label>
-            <input type="text" name="apellidos" required>
-        </div>
     </div>
 
-    <div class="row">
-        <div class="form-group">
-            <label>Tipo de Documento:</label>
-            <select name="tipo_documento" required>
-                <option value="">Seleccione</option>
-                <option value="dni">DNI</option>
-                <option value="ce">Carné de Extranjería</option>
-                <option value="pasaporte">Pasaporte</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>N° Documento:</label>
-            <input type="text" name="numero_documento" required>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label>Dirección:</label>
-        <input type="text" name="direccion">
-    </div>
-
-    <div class="row">
-        <div class="form-group">
-            <label>Teléfono:</label>
-            <input type="text" name="telefono">
-        </div>
-        <div class="form-group">
-            <label>Correo Electrónico:</label>
-            <input type="email" name="correo">
-        </div>
-    </div>
-
-    <hr>
-
-    <h3>2. Detalle de la Solicitud</h3>
-
-    <div class="form-group">
-        <label>Asunto:</label>
-        <input type="text" name="asunto" required>
-    </div>
-
-    <div class="form-group">
-        <label>Descripción de la solicitud:</label>
-        <textarea name="descripcion" rows="6" required></textarea>
-    </div>
-
-    <hr>
-
-    <div class="form-group">
-        <label>Fecha:</label>
-        <input type="date" name="fecha">
-    </div>
-
-    <div class="form-group">
-        <label>Documentos anexados (Recuerde que todos los documentos deben estar en un solo PDF):
-            <a href="https://www.ilovepdf.com/es/unir_pdf" target="_blank">UNIR PDF</a>
-        </label>
-        <input type="file" name="doc_anexado">
-    </div>
-
-    <br>
-    <button type="submit" class="btn">Enviar Solicitud</button>
-
-</form>
+</div>

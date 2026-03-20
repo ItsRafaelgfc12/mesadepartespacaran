@@ -25,6 +25,7 @@ $vista = $_GET["vista"] ?? "inicio";
         rel="stylesheet">
     <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <title>Inicio</title>
 
 
@@ -77,7 +78,7 @@ $vista = $_GET["vista"] ?? "inicio";
                         <a class="collapse-item" href="home.php?vista=fut/crear">FUT</a>
                         <a class="collapse-item" href="home.php?vista=requerimiento/crear">Requerimiento</a>
                         <h6 class="collapse-header">Documentos:</h6>
-                        <a class="collapse-item" href="home.php?vista=documentos/pendiente">Pendiente temporal</a>
+                        <a class="collapse-item" href="home.php?vista=documentos/pendiente">Pendientes</a>
                         <a class="collapse-item" href="home.php?vista=documentos/enviar">Enviar</a>
                     </div>
                 </div>
@@ -157,6 +158,7 @@ $vista = $_GET["vista"] ?? "inicio";
                 <div id="collapseFive" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Acciones:</h6>
+                        <a class="collapse-item" href="home.php?vista=eventos/ver">Ver</a>
                         <a class="collapse-item" href="home.php?vista=eventos/crear">Crear</a>
                         <a class="collapse-item" href="home.php?vista=eventos/administrar">Administrar</a>
                     </div>
