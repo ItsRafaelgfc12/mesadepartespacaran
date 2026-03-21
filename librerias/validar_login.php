@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Preparar consulta para obtener usuario
     $sql = "SELECT id_usuario, nombres_usuario, apellidos_usuario, contrasena, id_rol 
-            FROM usuario 
+            FROM usuario
             WHERE email_per = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $email);
