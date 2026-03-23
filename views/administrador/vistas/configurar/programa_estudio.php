@@ -16,7 +16,8 @@
 
         </div>
     </div>
-        <div class="card shadow">
+
+    <div class="card shadow">
         <div class="card-body">
 
             <div class="table-responsive">
@@ -33,25 +34,7 @@
                     </thead>
 
                     <tbody>
-
-                        <!-- EJEMPLO -->
-                        <tr>
-                            <td>001</td>
-                            <td><strong>Ingeniería de Sistemas</strong></td>
-                            <td>Sistemas informáticos y desarrollo</td>
-                            <td><span class="badge badge-success">Activo</span></td>
-
-                            <td class="text-center">
-                                <button class="btn btn-warning btn-sm" onclick="editarPrograma('1','Ingeniería de Sistemas','Sistemas informáticos')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-
-                                <button class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-
+                        <!-- SE LLENA CON JS -->
                     </tbody>
 
                 </table>
@@ -60,12 +43,13 @@
         </div>
     </div>
 
-</div>  
+</div>
+
+<!-- MODAL -->
 <div class="modal fade" id="modalPrograma" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-
-            <form method="POST" action="guardar_programa.php">
+            <form id="formPrograma">
 
                 <div class="modal-header">
                     <h5 class="modal-title">
@@ -109,19 +93,98 @@
                 </div>
 
             </form>
-
         </div>
     </div>
 </div>
-<script>
-// BUSCADOR
-document.getElementById("buscador").addEventListener("input", function(){
-    let texto = this.value.toLowerCase();
 
-    document.querySelectorAll("#tablaProgramas tbody tr").forEach(fila => {
-        fila.style.display = fila.innerText.toLowerCase().includes(texto) ? "" : "none";
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    // BUSCADOR
+    document.getElementById("buscador").addEventListener("input", function(){
+        let texto = this.value.toLowerCase();
+
+        document.querySelectorAll("#tablaProgramas tbody tr").forEach(fila => {
+            fila.style.display = fila.innerText.toLowerCase().includes(texto) ? "" : "none";
+        });
     });
+
+    // GUARDAR
+    document.getElementById("formPrograma").addEventListener("submit", function(e){
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch('../../ajax/ajax_programa.php?accion=guardar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            $('#modalPrograma').modal('hide');
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Programa de estudio guardado correctamente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            cargarProgramas(); // 🔥 recarga
+        });
+    });
+
+    // LIMPIAR MODAL
+    $('#modalPrograma').on('hidden.bs.modal', function () {
+        document.getElementById("formPrograma").reset();
+        document.getElementById("id_programa").value = "";
+    });
+
+    // INICIAR
+    cargarProgramas();
+
 });
+
+// 🔥 GLOBAL (IMPORTANTE)
+function cargarProgramas() {
+    fetch('../../ajax/ajax_programa.php?accion=listar')
+    .then(res => res.json())
+    .then(data => {
+
+        let tabla = document.querySelector("#tablaProgramas tbody");
+        tabla.innerHTML = "";
+
+        data.forEach((row, index) => {
+
+            tabla.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${row.programa_estudio}</strong></td>
+                    <td>${row.descripcion ?? '-'}</td>
+                    <td>
+                        ${row.estado == 1 
+                        ? '<span class="badge badge-success">Activo</span>' 
+                        : '<span class="badge badge-danger">Inactivo</span>'}
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-warning btn-sm"
+                            onclick="editarPrograma('${row.id_programa_estudio}','${row.programa_estudio}','${row.descripcion ?? ''}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                            onclick="eliminarPrograma(${row.id_programa_estudio})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+    });
+}
 
 // EDITAR
 function editarPrograma(id, nombre, descripcion){
@@ -132,10 +195,39 @@ function editarPrograma(id, nombre, descripcion){
     $('#modalPrograma').modal('show');
 }
 
-// LIMPIAR MODAL (cuando es nuevo)
-$('#modalPrograma').on('hidden.bs.modal', function () {
-    document.getElementById("id_programa").value = "";
-    document.getElementById("nombre").value = "";
-    document.getElementById("descripcion").value = "";
-});
+// ELIMINAR
+function eliminarPrograma(id){
+
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'No podrás revertir esta acción',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            fetch('../../ajax/ajax_programa.php?accion=eliminar&id=' + id)
+            .then(res => res.json())
+            .then(data => {
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Eliminado',
+                    text: 'Programa eliminado correctamente',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                cargarProgramas(); // 🔥 aquí estaba tu problema
+            });
+
+        }
+
+    });
+}
 </script>

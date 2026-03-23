@@ -53,17 +53,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 case 2:
                     header("Location: ../views/usuario/home.php");
                     exit;
+                case 3:
+                    header("Location: ../views/docente/home.php");
+                    exit; 
+                case 4:
+                    header("Location: ../views/administrativo/home.php");
+                    exit; 
                 default:
-                    echo "<script>alert('El usuario no tiene un rol asignado'); window.location='index.php';</script>";
+                    echo "<script>alert('El usuario no tiene un rol asignado'); window.location='../index.php';</script>";
                     exit;
             }
 
         } else {
-            echo "<script>alert('Contraseña incorrecta'); window.location='index.php';</script>";
+            echo "<script>alert('Contraseña incorrecta'); window.location='../index.php';</script>";
         }
 
     } else {
-        echo "<script>alert('Usuario no encontrado'); window.location='index.php';</script>";
+        echo "<script>alert('Usuario no encontrado'); window.location='../index.php';</script>";
     }
 } else {
     header("Location: index.php");

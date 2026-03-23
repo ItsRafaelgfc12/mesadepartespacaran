@@ -12,7 +12,7 @@ $vista = $_GET["vista"] ?? "inicio";
 <html lang="es">
 
 <head>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -96,7 +96,7 @@ $vista = $_GET["vista"] ?? "inicio";
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSeven"
                     aria-expanded="true" aria-controls="collapseSeven">
-                    <i class="fas fa-fw fa-file-alt"></i>
+                    <i class="fas fa-fw fa-folder-open"></i>
                     <span>Expedientes</span>
                 </a>
                 <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionSidebar">
@@ -122,7 +122,7 @@ $vista = $_GET["vista"] ?? "inicio";
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTree"
                     aria-expanded="true" aria-controls="collapseTree">
-                    <i class="fas fa-fw fa-file-alt"></i>
+                    <i class="fas fa-fw fa-copy"></i>
                     <span>Plantillas</span>
                 </a>
                 <div id="collapseTree" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -149,7 +149,7 @@ $vista = $_GET["vista"] ?? "inicio";
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFour"
                     aria-expanded="true" aria-controls="collapseFour">
-                    <i class="fas fa-fw fa-file-alt"></i>
+                    <i class="fas fa-fw fa-users"></i>
                     <span>Usuarios  </span>
                 </a>
                 <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
@@ -176,7 +176,7 @@ $vista = $_GET["vista"] ?? "inicio";
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFive"
                     aria-expanded="true" aria-controls="collapseFive">
-                    <i class="fas fa-fw fa-file-alt"></i>
+                    <i class="fas fa-fw fa-calendar"></i>
                     <span>Eventos  </span>
                 </a>
                 <div id="collapseFive" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
@@ -202,7 +202,7 @@ $vista = $_GET["vista"] ?? "inicio";
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSix"
                     aria-expanded="true" aria-controls="collapseSix">
-                    <i class="fas fa-fw fa-file-alt"></i>
+                    <i class="fas fa-fw fa-cog"></i>
                     <span>Configurar  </span>
                 </a>
                 <div id="collapseSix" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">

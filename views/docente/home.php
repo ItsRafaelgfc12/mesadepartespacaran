@@ -5,8 +5,16 @@ if (!isset($_SESSION["id_usuario"])) {
     exit;
 }
 
-// vista por defecto (si no se envía ?vista=... usa "inicio")
 $vista = $_GET["vista"] ?? "inicio";
+
+if (!isset($_SESSION["id_usuario"])) {
+    header("Location: ../../index.php");
+    exit;
+}
+
+if (!isset($_SESSION['cargos'])) {
+    $_SESSION['cargos'] = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -19,15 +27,17 @@ $vista = $_GET["vista"] ?? "inicio";
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../img/LOGIESPACARAN.png" type="image/png">
-        <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>Inicio</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-    <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../css/style.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <title>Inicio</title>
 
+    <!-- Custom styles for this template-->
+    <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
 
 </head>
 
@@ -75,39 +85,12 @@ $vista = $_GET["vista"] ?? "inicio";
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Tramites disponibles:</h6>
-                        <a class="collapse-item" href="home.php?vista=fut/crear">FUT</a>
-                        <a class="collapse-item" href="home.php?vista=requerimiento/crear">Requerimiento</a>
-                        <h6 class="collapse-header">Documentos:</h6>
-                        <a class="collapse-item" href="home.php?vista=documentos/pendiente">Pendientes</a>
-                        <a class="collapse-item" href="home.php?vista=documentos/enviar">Enviar</a>
+                        <a class="collapse-item" href="home.php?vista=fut/solicitar">FUT</a>
+                        <a class="collapse-item" href="home.php?vista=requerimiento/solicitar">Requerimiento</a>
                     </div>
                 </div>
             </li>
 
-             <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Documentacion
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSeven"
-                    aria-expanded="true" aria-controls="collapseSeven">
-                    <i class="fas fa-fw fa-folder-open"></i>
-                    <span>Expedientes</span>
-                </a>
-                <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Expediente:</h6>
-                        <a class="collapse-item" href="home.php?vista=expediente/crear">Crear</a>
-                        <a class="collapse-item" href="home.php?vista=expediente/ver">Ver</a>
-                        <a class="collapse-item" href="home.php?vista=expediente/administrar">Administrar</a>
-                    </div>
-                </div>
-            </li>
 
 
             <!-- Separaddor -->
@@ -122,42 +105,47 @@ $vista = $_GET["vista"] ?? "inicio";
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTree"
                     aria-expanded="true" aria-controls="collapseTree">
-                    <i class="fas fa-fw fa-copy"></i>
+                    <i class="fas fa-fw fa-file-alt"></i>
                     <span>Plantillas</span>
                 </a>
                 <div id="collapseTree" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Acciones:</h6>
                         <a class="collapse-item" href="home.php?vista=plantillas/ver">Ver plantillas</a>
+                        <a class="collapse-item" href="home.php?vista=pantillas/subirplantilla">Subir</a>
                     </div>
                 </div>
             </li>
+
+<?php if (in_array("Docente", $_SESSION['cargos'])): ?>
+    <!-- Separador -->
+    <hr class="sidebar-divider">
+
+    <!-- Cabecera -->
+    <div class="sidebar-heading">
+        Curso capacitación
+    </div>
+
+    <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCurso"
+            aria-expanded="true" aria-controls="collapseCurso">
+            <i class="fas fa-fw fa-file-alt"></i>
+            <span>Curso - Capacitación</span>
+        </a>
+        <div id="collapseCurso" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <h6 class="collapse-header">Acciones:</h6>
+                <a class="collapse-item" href="buttons.html">Crear nuevo Curso - Capacitacion</a>
+                <?php if (in_array("Docente", $_SESSION['cargos'])): ?>
+                <a class="collapse-item" href="cards.html">Administrar curso capacitacion</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </li>
+<?php endif; ?>
 
             <!-- Separaddor -->
-            <hr class="sidebar-divider">
-
-            <!-- Cabecera -->
-            <div class="sidebar-heading">
-                Eventos
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseFive"
-                    aria-expanded="true" aria-controls="collapseFive">
-                    <i class="fas fa-fw fa-calendar"></i>
-                    <span>Eventos  </span>
-                </a>
-                <div id="collapseFive" class="collapse" aria-labelledby="headingFour" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Acciones:</h6>
-                        <a class="collapse-item" href="home.php?vista=eventos/ver">Ver</a>
-                    </div>
-                </div>
-            </li>
-
-
-            <!-- Divider -->
             <hr class="sidebar-divider">
 
             <!-- Sidebar Toggler (Sidebar) -->
@@ -169,7 +157,7 @@ $vista = $_GET["vista"] ?? "inicio";
         <!-- End of Sidebar -->
 
         <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column min-vh-100">
+        <div id="content-wrapper" class="d-flex flex-column">
 
             <!-- Main Content -->
             <div id="content">
@@ -258,7 +246,7 @@ $vista = $_GET["vista"] ?? "inicio";
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="home.php?vista=perfil">
+                                <a class="dropdown-item" href="home.php?perfil">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Perfil
                                 </a>
@@ -290,7 +278,7 @@ $vista = $_GET["vista"] ?? "inicio";
                     if (file_exists($ruta)) {
                         include $ruta;
                     } else {
-                        echo "<h3 class='text-danger'>La vista '$vista' no existe.</h3>";
+                        echo "<h3 class='text-danger'>⚠️ La vista '$vista' no existe.</h3>";
                     }
                     ?>
                 </div>
@@ -299,13 +287,13 @@ $vista = $_GET["vista"] ?? "inicio";
             <!-- End of Main Content -->
 
             <!-- Footer -->
-            <footer class="sticky-footer bg-white mt-auto">
-        <div class="container my-auto">
-            <div class="copyright text-center my-auto">
-                <span>Copyright &copy; Mesa de partes IES Pacarán 2025</span>
-            </div>
-        </div>
-    </footer>
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Mesa de partes IES Pacarán 2025</span>
+                    </div>
+                </div>
+            </footer>
             <!-- Fin de Footer -->
 
         </div>
@@ -319,7 +307,6 @@ $vista = $_GET["vista"] ?? "inicio";
         <i class="fas fa-angle-up"></i>
     </a>
 
-    
     <!-- Modal de salida -->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
         aria-hidden="true">

@@ -33,44 +33,6 @@
                     </thead>
 
                     <tbody>
-
-                        <!-- EJEMPLO -->
-                        <tr>
-                            <td>001</td>
-                            <td><strong>Recursos Humanos</strong></td>
-                            <td>Gestión del personal</td>
-                            <td><span class="badge badge-success">Activo</span></td>
-
-                            <td class="text-center">
-                                <button class="btn btn-warning btn-sm"
-                                    onclick="editarArea('1','Recursos Humanos','Gestión del personal','activo')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-
-                                <button class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>002</td>
-                            <td><strong>Logística</strong></td>
-                            <td>Control de almacén y compras</td>
-                            <td><span class="badge badge-secondary">Inactivo</span></td>
-
-                            <td class="text-center">
-                                <button class="btn btn-warning btn-sm"
-                                    onclick="editarArea('2','Logística','Control de almacén','inactivo')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-
-                                <button class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-
                     </tbody>
 
                 </table>
@@ -134,30 +96,144 @@
 </div>
 
 <script>
-// BUSCADOR
-document.getElementById("buscador").addEventListener("input", function(){
-    let texto = this.value.toLowerCase();
+document.addEventListener("DOMContentLoaded", function() {
 
-    document.querySelectorAll("#tablaAreas tbody tr").forEach(fila => {
-        fila.style.display = fila.innerText.toLowerCase().includes(texto) ? "" : "none";
+    // BUSCADOR
+    document.getElementById("buscador").addEventListener("input", function(){
+        let texto = this.value.toLowerCase();
+
+        document.querySelectorAll("#tablaAreas tbody tr").forEach(fila => {
+            fila.style.display = fila.innerText.toLowerCase().includes(texto) ? "" : "none";
+        });
     });
+
+    // GUARDAR
+    document.querySelector("#modalArea form").addEventListener("submit", function(e){
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch('../../ajax/ajax_area.php?accion=guardar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            $('#modalArea').modal('hide');
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'Área guardada correctamente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            cargarAreas();
+        });
+    });
+
+    // LIMPIAR MODAL
+    $('#modalArea').on('hidden.bs.modal', function () {
+        this.querySelector("form").reset();
+        document.getElementById("id_area").value = "";
+    });
+
+    // INICIAR
+    cargarAreas();
 });
+
+// 🔥 GLOBAL
+function cargarAreas() {
+    fetch('../../ajax/ajax_area.php?accion=listar')
+    .then(res => res.json())
+    .then(data => {
+
+        let tabla = document.querySelector("#tablaAreas tbody");
+        tabla.innerHTML = "";
+
+        data.forEach((row, index) => {
+
+            tabla.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${row.nombre_area}</strong></td>
+                    <td>${row.descripcion ?? '-'}</td>
+                    <td>
+                        ${row.estado == 1 
+                        ? '<span class="badge badge-success">Activo</span>' 
+                        : '<span class="badge badge-secondary">Inactivo</span>'}
+                    </td>
+                    <td class="text-center">
+
+                        <button class="btn btn-warning btn-sm"
+                            onclick="editarArea(
+                                '${row.id_area}',
+                                '${row.nombre_area}',
+                                '${row.descripcion ?? ''}',
+                                '${row.estado}'
+                            )">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                            onclick="eliminarArea(${row.id_area})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+            `;
+        });
+
+    });
+}
 
 // EDITAR
 function editarArea(id, nombre, descripcion, estado){
+
     document.getElementById("id_area").value = id;
     document.getElementById("nombre").value = nombre;
     document.getElementById("descripcion").value = descripcion;
-    document.getElementById("estado").value = estado;
+    document.getElementById("estado").value = (estado == 1) ? "activo" : "inactivo";
 
     $('#modalArea').modal('show');
 }
 
-// LIMPIAR MODAL
-$('#modalArea').on('hidden.bs.modal', function () {
-    document.getElementById("id_area").value = "";
-    document.getElementById("nombre").value = "";
-    document.getElementById("descripcion").value = "";
-    document.getElementById("estado").value = "activo";
-});
+// ELIMINAR
+function eliminarArea(id){
+
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'No podrás revertir esta acción',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            fetch('../../ajax/ajax_area.php?accion=eliminar&id=' + id)
+            .then(res => res.json())
+            .then(data => {
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Eliminado',
+                    text: 'Área eliminada correctamente',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                cargarAreas();
+            });
+
+        }
+
+    });
+}
 </script>
