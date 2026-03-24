@@ -2,7 +2,7 @@
     <i class="fas fa-folder-open text-primary"></i> Administrar Plantillas
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- HEADER -->
     <div class="card shadow mb-4">

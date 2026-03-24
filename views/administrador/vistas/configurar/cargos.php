@@ -2,7 +2,7 @@
         <i class="fas fa-id-badge text-primary"></i> Gestión de Cargos
     </h1>
 
-    <div class="container">
+    <div class="container-fluid">
 
         <!-- ACCIONES -->
         <div class="card shadow mb-4">

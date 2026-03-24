@@ -2,7 +2,7 @@
     <i class="fas fa-user-plus text-primary"></i> Registrar nuevo usuario
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <div class="card shadow mb-4">
         <div class="card-body">

@@ -1,6 +1,6 @@
 <h1 class="h3 mb-4 text-gray-800">Ver Expedientes</h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- FILTROS -->
     <div class="card shadow-sm mb-3">

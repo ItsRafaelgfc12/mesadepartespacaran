@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container-fluid">
 
     <!-- HEADER PERFIL -->
     <div class="card shadow mb-4">

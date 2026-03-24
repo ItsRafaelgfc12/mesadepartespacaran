@@ -2,7 +2,7 @@
     <i class="fas fa-graduation-cap text-primary"></i> Programas de Estudio
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- ACCIONES -->
     <div class="card shadow mb-4">

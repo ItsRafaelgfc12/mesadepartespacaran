@@ -2,7 +2,7 @@
     <i class="fas fa-folder text-primary"></i> Gestión de Documentos
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- NAV TABS -->
     <ul class="nav nav-tabs mb-4" id="tabsDocumentos">

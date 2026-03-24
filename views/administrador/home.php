@@ -360,12 +360,12 @@ $vista = $_GET["vista"] ?? "inicio";
 
             <!-- Footer -->
             <footer class="sticky-footer bg-white mt-auto">
-        <div class="container my-auto">
-            <div class="copyright text-center my-auto">
-                <span>Copyright &copy; Mesa de partes IES Pacarán 2025</span>
-            </div>
-        </div>
-    </footer>
+                <div class="container-fluid">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Mesa de partes IES Pacarán 2025</span>
+                    </div>
+                </div>
+            </footer>
             <!-- Fin de Footer -->
 
         </div>

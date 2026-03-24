@@ -2,7 +2,7 @@
     <i class="fas fa-file-alt text-primary"></i> Nuevo Documento
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <div class="card shadow">
         <div class="card-body">

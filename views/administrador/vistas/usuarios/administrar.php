@@ -2,7 +2,7 @@
     <i class="fas fa-users text-primary"></i> Administrar Usuarios
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- FILTROS -->
     <div class="card shadow mb-4">

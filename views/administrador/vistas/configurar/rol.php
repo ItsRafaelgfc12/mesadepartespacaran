@@ -2,7 +2,7 @@
     <i class="fas fa-user-tag text-primary"></i> Gestión de Roles
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- ACCIONES -->
     <div class="card shadow mb-4">

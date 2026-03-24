@@ -1,5 +1,5 @@
 <h1 class="h3 mb-4 text-gray-800">Ver plantillas</h1>
-<div class="container mt-4">
+<div class="container-fluid">
 
     <h2 class="mb-4">Plantillas de Documentos</h2>
 

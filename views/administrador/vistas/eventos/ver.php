@@ -15,7 +15,7 @@
         }
     </style>
 
-<div class="container mt-5">
+<div class="container-fluid">
 
     <div class="text-center mb-4">
         <h2 class="text-primary">Eventos Disponibles</h2>

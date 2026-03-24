@@ -57,16 +57,16 @@ CREATE TABLE usuario (
     url_foto_usuario VARCHAR(50),
     url_dni_usuario VARCHAR(50),
     url_firma VARCHAR(50),
-    id_dep INT,
-    id_prov INT,
-    id_dis INT,
+    id_dep (2),
+    id_prov VARCHAR(4),
+    id_dis VARCHAR(6),
     created_at DATETIME,
     last_session DATETIME,
     FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
     FOREIGN KEY (id_area) REFERENCES area(id_area),
-    FOREIGN KEY (id_dep) REFERENCES departamento(id_departamento),
-    FOREIGN KEY (id_prov) REFERENCES provincia(id_provincia),
-    FOREIGN KEY (id_dis) REFERENCES distrito(id_dis)
+    FOREIGN KEY (id_dep) REFERENCES ubigeo_peru_departments(id),
+    FOREIGN KEY (id_prov) REFERENCES ubigeo_peru_provinces(id),
+    FOREIGN KEY (id_dis) REFERENCES ubigeo_peru_districts(id)
 );
 
 
@@ -132,13 +132,47 @@ CREATE TABLE historial_derivacion (
 );
 
 CREATE TABLE requerimiento_almacen (
-    id_requerimiento INT PRIMARY KEY AUTO_INCREMENT,
+    id_requerimiento_almacen INT PRIMARY KEY AUTO_INCREMENT,
     fecha_requerimiento DATETIME,
     motivo VARCHAR(256),
     id_area INT,
     id_usuario INT,
     FOREIGN KEY (id_area) REFERENCES area(id_area),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE detalle_requerimiento_almacen (
+    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
+    id_requerimiento_almacen INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL,
+    descripcion VARCHAR(255),
+    FOREIGN KEY (id_requerimiento_almacen) REFERENCES requerimiento_almacen(id_requerimiento_almacen),
+    FOREIGN KEY (id_producto) REFERENCES producto(id_producto)
+);
+
+CREATE TABLE requerimiento_economico (
+    id_requerimiento_economico INT PRIMARY KEY AUTO_INCREMENT,
+    fecha_requerimiento_eco DATETIME,
+    motivo VARCHAR(256),
+    id_area INT,
+    id_usuario INT,
+    FOREIGN KEY (id_area) REFERENCES area(id_area),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE detalle_requerimiento_economico (
+    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
+    id_requerimiento_economico INT NOT NULL,
+
+    concepto VARCHAR(255) NOT NULL,
+    descripcion VARCHAR(255),
+    cantidad INT DEFAULT 1,
+    monto_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2),
+
+    FOREIGN KEY (id_requerimiento_economico)
+        REFERENCES requerimiento_economico(id_requerimiento_economico)
 );
 
 CREATE TABLE documento (

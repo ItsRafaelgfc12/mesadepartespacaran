@@ -2,7 +2,7 @@
     <i class="fas fa-clipboard-list text-primary"></i> Gestión de Requerimientos
 </h1>
 
-<div class="container">
+<div class="container-fluid">
 
     <!-- BOTONES -->
     <div class="text-center mb-4">
