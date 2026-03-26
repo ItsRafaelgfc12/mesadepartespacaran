@@ -4,42 +4,67 @@ Use db_msdpacaran;
 CREATE TABLE rol (
     id_rol INT PRIMARY KEY AUTO_INCREMENT,
     rol VARCHAR(60),
-    descripcion VARCHAR(150)
+    descripcion VARCHAR(150),
+    estado INT
 );
 
 CREATE TABLE area (
     id_area INT PRIMARY KEY AUTO_INCREMENT,
-    area VARCHAR(35)
+    nombre_area VARCHAR(35),
+    descripcion VARCHAR(255),
+    estado INT
 );
 
 CREATE TABLE cargo (
     id_cargo INT PRIMARY KEY AUTO_INCREMENT,
-    cargo VARCHAR(35)
+    cargo VARCHAR(35),
+    estado INT,
+    descripcion VARCHAR(150),
+    id_area int,
+    FOREIGN KEY (id_area) REFERENCES area(id_area)
 );
 
 CREATE TABLE programa_estudio (
     id_programa_estudio INT PRIMARY KEY AUTO_INCREMENT,
-    programa_estudio VARCHAR(40)
+    programa_estudio VARCHAR(40),
+    descripcion VARCHAR(255),
+    estado INT
 );
 
-CREATE TABLE distrito (
-  `id_distrito` INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-  `name` varchar(45) DEFAULT NULL,
-  `province_id` varchar(4) DEFAULT NULL,
-  `department_id` varchar(2) DEFAULT NULL
-);
+CREATE TABLE ubigeo_peru_departments (
+  id VARCHAR(2) PRIMARY KEY,
+  name VARCHAR(45) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE provincia (
-  `id_provincia` INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-  `name` varchar(45) NOT NULL,
-  `department_id` varchar(2) NOT NULL
-);
+CREATE TABLE ubigeo_peru_provinces (
+  id VARCHAR(4) PRIMARY KEY,
+  name VARCHAR(45) NOT NULL,
+  department_id VARCHAR(2),
+  FOREIGN KEY (department_id)
+    REFERENCES ubigeo_peru_departments(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE departamento (
-  `id_departamento` INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-  `name` varchar(45) NOT NULL
-);
+CREATE TABLE ubigeo_peru_districts (
+  id VARCHAR(6) PRIMARY KEY,
+  name VARCHAR(45),
+  province_id VARCHAR(4),
+  department_id VARCHAR(2),
+  FOREIGN KEY (province_id)
+    REFERENCES ubigeo_peru_provinces(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  FOREIGN KEY (department_id)
+    REFERENCES ubigeo_peru_departments(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE estado_usuario (
+    id_estado INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50)
+);
 
 CREATE TABLE usuario (
     id_usuario INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -47,26 +72,27 @@ CREATE TABLE usuario (
     apellidos_usuario VARCHAR(75),
     email_per VARCHAR(75),
     email_ins VARCHAR(75),
-    id_rol INT,
-    id_area INT,
-    celular_usuario INT,
+    id_rol INT NULL,
+    celular_usuario VARCHAR(15),
     tipo_documento VARCHAR(25),
-    numero_documento INT,
+    numero_documento VARCHAR(15),
     id_estado INT,
-    direccion_usuario VARCHAR(50),
-    url_foto_usuario VARCHAR(50),
-    url_dni_usuario VARCHAR(50),
-    url_firma VARCHAR(50),
-    id_dep (2),
+    direccion_usuario VARCHAR(255),
+    url_foto_usuario VARCHAR(255),
+    url_dni_usuario VARCHAR(255),
+    url_firma VARCHAR(255),
+    id_dep VARCHAR(2),
     id_prov VARCHAR(4),
     id_dis VARCHAR(6),
-    created_at DATETIME,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,    
     last_session DATETIME,
-    FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
-    FOREIGN KEY (id_area) REFERENCES area(id_area),
+    UNIQUE (email_per),
+	UNIQUE (email_ins),
+    FOREIGN KEY (id_estado) REFERENCES estado_usuario(id_estado),
+	FOREIGN KEY (id_rol) REFERENCES rol(id_rol),
     FOREIGN KEY (id_dep) REFERENCES ubigeo_peru_departments(id),
-    FOREIGN KEY (id_prov) REFERENCES ubigeo_peru_provinces(id),
-    FOREIGN KEY (id_dis) REFERENCES ubigeo_peru_districts(id)
+	FOREIGN KEY (id_prov) REFERENCES ubigeo_peru_provinces(id),
+	FOREIGN KEY (id_dis) REFERENCES ubigeo_peru_districts(id)
 );
 
 
@@ -77,14 +103,6 @@ CREATE TABLE usuario_cargo (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_cargo) REFERENCES cargo(id_cargo)
 );
--- Version mejorada:
-CREATE TABLE usuario_cargo (
-    id_usuario INT NOT NULL,
-    id_cargo INT NOT NULL,
-    PRIMARY KEY (id_usuario, id_cargo),
-    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
-    FOREIGN KEY (id_cargo) REFERENCES cargo(id_cargo) ON DELETE CASCADE
-);
 
 CREATE TABLE usuario_programa_estudio (
     id_usuario_programa INT PRIMARY KEY AUTO_INCREMENT,
@@ -94,41 +112,105 @@ CREATE TABLE usuario_programa_estudio (
     FOREIGN KEY (id_programa_estudio) REFERENCES programa_estudio(id_programa_estudio)
 );
 
-CREATE TABLE fut (
-    id_fut INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE tipo_documento (
+    id_tipo INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50)
+);
+
+CREATE TABLE documento (
+    id_documento INT PRIMARY KEY AUTO_INCREMENT,
+	id_tipo INT NOT NULL,
+    codigo_documento VARCHAR(50) UNIQUE NOT NULL,
+    asunto VARCHAR(255) NOT NULL,
+    descripcion TEXT,
     sumilla VARCHAR(75),
-    id_area INT,
-    codigo_modular VARCHAR(25),
-    id_usuario INT,
     fundamento_pedido VARCHAR(256),
+    codigo_modular VARCHAR(25),
+    fecha_emision DATETIME DEFAULT CURRENT_TIMESTAMP,
     lugar VARCHAR(40),
-    fecha DATETIME,
-    firma_usuario VARCHAR(100),
-    correlativo INT,
-    FOREIGN KEY (id_area) REFERENCES area(id_area),
+    id_usuario_emisor INT,
+    id_area_origen INT,
+    url_principal VARCHAR(255),
+	estado ENUM('borrador','enviado','en_proceso','finalizado','archivado') 
+	DEFAULT 'borrador',
+    FOREIGN KEY (id_tipo) REFERENCES tipo_documento(id_tipo),
+    FOREIGN KEY (id_usuario_emisor) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_area_origen) REFERENCES area(id_area)
+);
+
+CREATE TABLE documento_adjuntos (
+    id_adjunto INT PRIMARY KEY AUTO_INCREMENT,
+    id_documento INT NOT NULL,
+    nombre VARCHAR(100),
+    tipo VARCHAR(50),
+    ruta_archivo VARCHAR(255) NOT NULL,
+	nombre_original VARCHAR(150),
+	extension VARCHAR(10),
+	peso BIGINT,
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_documento) REFERENCES documento(id_documento)
+);
+
+CREATE TABLE documento_derivacion (
+    id_derivacion INT PRIMARY KEY AUTO_INCREMENT,
+    id_documento INT NOT NULL,
+    tipo_destino ENUM('usuario','area','programa','rol','cargo') NOT NULL,
+    id_destino INT NOT NULL,
+    estado ENUM('pendiente','recibido','derivado','finalizado') DEFAULT 'pendiente',
+    fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (id_documento, tipo_destino, id_destino),
+    FOREIGN KEY (id_documento) REFERENCES documento(id_documento)
+);
+
+CREATE TABLE documento_historial (
+    id_historial INT PRIMARY KEY AUTO_INCREMENT,
+    id_documento INT NOT NULL,
+    id_usuario INT NOT NULL,
+    tipo_evento ENUM(
+        'creado',
+        'enviado',
+        'recibido',
+        'leido',
+        'descargado',
+        'derivado',
+        'observado',
+        'respondido',
+        'archivado'
+    ) NOT NULL,
+    tipo_destino ENUM('usuario','area','programa','rol','cargo') NULL,
+    id_destino INT NULL,
+    observacion TEXT,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_documento) REFERENCES documento(id_documento),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
 
-CREATE TABLE detalle_fut (
-    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
-    id_fut INT,
-    nombre_documento VARCHAR(100),
-    tipo_documento VARCHAR(50),
-    archivo VARCHAR(255),
-    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_fut) REFERENCES fut(id_fut)
+-- DERIVACION
+CREATE INDEX idx_doc_derivacion_doc ON documento_derivacion(id_documento);
+CREATE INDEX idx_doc_derivacion_destino ON documento_derivacion(id_destino);
+
+-- HISTORIAL
+CREATE INDEX idx_doc_historial_doc ON documento_historial(id_documento);
+CREATE INDEX idx_doc_historial_usuario ON documento_historial(id_usuario);
+
+
+CREATE TABLE documento_archivo (
+    id_archivo INT PRIMARY KEY AUTO_INCREMENT,
+    id_documento INT NOT NULL,
+
+    fecha_archivado DATETIME,
+    mensaje VARCHAR(100),
+
+    id_usuario INT,
+
+    FOREIGN KEY (id_documento) REFERENCES documento(id_documento),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
 
-CREATE TABLE historial_derivacion (
-    id_historial INT PRIMARY KEY AUTO_INCREMENT,
-    id_fut INT,
-    id_usuario_origen INT,
-    id_usuario_destino INT,
-    fecha_derivacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-    observacion TEXT,
-    FOREIGN KEY (id_fut) REFERENCES fut(id_fut),
-    FOREIGN KEY (id_usuario_origen) REFERENCES usuario(id_usuario),
-    FOREIGN KEY (id_usuario_destino) REFERENCES usuario(id_usuario)
+CREATE TABLE producto(
+	id_producto INT PRIMARY KEY AUTO_INCREMENT,
+	nombre_producto VARCHAR(50),
+    descripcion_producto VARCHAR(255)    
 );
 
 CREATE TABLE requerimiento_almacen (
@@ -175,50 +257,132 @@ CREATE TABLE detalle_requerimiento_economico (
         REFERENCES requerimiento_economico(id_requerimiento_economico)
 );
 
-CREATE TABLE documento (
-    id_documento INT PRIMARY KEY AUTO_INCREMENT,
-    codigo_documento VARCHAR(50) UNIQUE NOT NULL,
+CREATE TABLE evento (
+	id_evento INT PRIMARY KEY AUTO_INCREMENT,
+    titulo VARCHAR(100),
+    descripcion VARCHAR(255),
+    nombre_ubicacion VARCHAR(150),
+    url_ubicacion VARCHAR(512),
+    fecha DATETIME,
+    url_imagen VARCHAR(255)
+    );
+    
+CREATE TABLE evento_participante (
+    id_evento_participante INT PRIMARY KEY AUTO_INCREMENT,
+    id_evento INT NOT NULL,
+    id_usuario INT NOT NULL,
+    observacion VARCHAR(255),
+    tipo_participacion ENUM('asistente','organizador','ponente','invitado') DEFAULT 'asistente',
+    estado ENUM('pendiente','confirmado','asistio','no_asistio') DEFAULT 'pendiente',
+    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    UNIQUE (id_evento, id_usuario)
+);
+	
+CREATE INDEX idx_evento_participante_evento ON evento_participante(id_evento);
+
+CREATE TABLE expediente (
+    id_expediente INT PRIMARY KEY AUTO_INCREMENT,
+    codigo_expediente VARCHAR(50) UNIQUE NOT NULL,
     asunto VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    fecha_emision DATETIME DEFAULT CURRENT_TIMESTAMP,
-    id_usuario_emisor INT NOT NULL,
-    tipo_envio ENUM('rol', 'area', 'programa', 'cargo', 'usuario') NOT NULL,
-    url_doc VARCHAR(255),
-    FOREIGN KEY (id_usuario_emisor) REFERENCES usuario(id_usuario)
+    tipo ENUM('privado','publico','compartido') DEFAULT 'privado',
+    id_usuario_responsable INT NOT NULL,
+    estado ENUM('activo','en_proceso','finalizado','archivado') DEFAULT 'activo',
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_usuario_responsable) REFERENCES usuario(id_usuario)
 );
 
-CREATE TABLE detalle_documento (
-    id_detalle INT PRIMARY KEY AUTO_INCREMENT,
-    id_documento INT NOT NULL,
-    id_usuario_destino INT NULL,
-    id_area_destino INT NULL,
-    id_programa_destino INT NULL,
-    id_rol_destino INT NULL,
-    id_cargo_destino INT NULL,
-    estado ENUM('pendiente', 'leido', 'respondido') DEFAULT 'pendiente',
-    fecha_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_documento) REFERENCES documento(id_documento),
-    FOREIGN KEY (id_usuario_destino) REFERENCES usuario(id_usuario),
-    FOREIGN KEY (id_area_destino) REFERENCES area(id_area),
-    FOREIGN KEY (id_programa_destino) REFERENCES programa_estudio(id_programa_estudio),
-    FOREIGN KEY (id_rol_destino) REFERENCES rol(id_rol),
-    FOREIGN KEY (id_cargo_destino) REFERENCES cargo(id_cargo)
+CREATE TABLE expediente_acceso (
+    id_acceso INT PRIMARY KEY AUTO_INCREMENT,
+    id_expediente INT NOT NULL,
+    tipo_acceso ENUM('usuario','area','rol','cargo') NOT NULL,
+    id_referencia INT NOT NULL,
+    permiso ENUM('lectura','edicion','administrador') DEFAULT 'lectura',
+    fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente),
+
+    UNIQUE (id_expediente, tipo_acceso, id_referencia)
 );
 
-CREATE TABLE seguimiento_documento (
-    id_seguimiento INT PRIMARY KEY AUTO_INCREMENT,
-    id_detalle INT NOT NULL,
-    id_usuario_accion INT NOT NULL,
-    tipo_accion ENUM('enviado', 'leído', 'descargado', 'respondido', 'derivado', 'observado') NOT NULL,
-    fecha_accion DATETIME DEFAULT CURRENT_TIMESTAMP,
+CREATE INDEX idx_expediente_acceso_exp ON expediente_acceso(id_expediente);
+
+CREATE TABLE expediente_historial (
+    id_historial INT PRIMARY KEY AUTO_INCREMENT,
+    id_expediente INT NOT NULL,
+    id_usuario INT,
+
+    tipo_evento ENUM(
+        'creado',
+        'modificado',
+        'acceso_asignado',
+        'acceso_revocado',
+        'solicitud_acceso',
+        'aprobado',
+        'rechazado',
+        'archivado'
+    ) NOT NULL,
+
     observacion TEXT,
-    FOREIGN KEY (id_detalle) REFERENCES detalle_documento(id_detalle),
-    FOREIGN KEY (id_usuario_accion) REFERENCES usuario(id_usuario)
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
 
-CREATE TABLE archivo (
-    id_archivo INT PRIMARY KEY AUTO_INCREMENT,
-    id_documento INT NOT NULL,
-    fecha_archivado DATETIME,
-    FOREIGN KEY (id_documento) REFERENCES documento(id_documento)
+CREATE TABLE expediente_solicitud (
+    id_solicitud INT PRIMARY KEY AUTO_INCREMENT,
+    id_expediente INT NOT NULL,
+    id_usuario_solicitante INT NOT NULL,
+
+    estado ENUM('pendiente','aprobado','rechazado') DEFAULT 'pendiente',
+
+    mensaje TEXT,
+    fecha_solicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente),
+    FOREIGN KEY (id_usuario_solicitante) REFERENCES usuario(id_usuario)
 );
+
+CREATE INDEX idx_expediente_solicitud_exp ON expediente_solicitud(id_expediente);
+
+CREATE TABLE expediente_documento (
+    id_documento INT PRIMARY KEY AUTO_INCREMENT,
+    id_expediente INT NOT NULL,
+
+    nombre VARCHAR(150) NOT NULL,
+
+    version_actual INT DEFAULT 1,
+
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente)
+);
+
+CREATE TABLE expediente_version (
+    id_version INT PRIMARY KEY AUTO_INCREMENT,
+    id_documento INT NOT NULL,
+
+    version INT NOT NULL,
+
+    ruta_archivo VARCHAR(255) NOT NULL,
+    nombre_original VARCHAR(150),
+    extension VARCHAR(10),
+    peso BIGINT,
+
+    id_usuario INT NOT NULL,
+    comentario TEXT,
+
+    fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_documento) REFERENCES expediente_documento(id_documento),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+
+    UNIQUE (id_documento, version)
+);
+
+CREATE INDEX idx_expediente_doc ON expediente_documento(id_expediente);
+CREATE INDEX idx_version_doc ON expediente_version(id_documento);
+CREATE INDEX idx_historial_exp ON expediente_historial(id_expediente);
