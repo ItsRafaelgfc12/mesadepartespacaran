@@ -246,13 +246,11 @@ CREATE TABLE requerimiento_economico (
 CREATE TABLE detalle_requerimiento_economico (
     id_detalle INT PRIMARY KEY AUTO_INCREMENT,
     id_requerimiento_economico INT NOT NULL,
-
     concepto VARCHAR(255) NOT NULL,
     descripcion VARCHAR(255),
     cantidad INT DEFAULT 1,
     monto_unitario DECIMAL(10,2) NOT NULL,
     subtotal DECIMAL(10,2),
-
     FOREIGN KEY (id_requerimiento_economico)
         REFERENCES requerimiento_economico(id_requerimiento_economico)
 );
@@ -290,7 +288,6 @@ CREATE TABLE expediente (
     id_usuario_responsable INT NOT NULL,
     estado ENUM('activo','en_proceso','finalizado','archivado') DEFAULT 'activo',
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_usuario_responsable) REFERENCES usuario(id_usuario)
 );
 
@@ -301,9 +298,7 @@ CREATE TABLE expediente_acceso (
     id_referencia INT NOT NULL,
     permiso ENUM('lectura','edicion','administrador') DEFAULT 'lectura',
     fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente),
-
     UNIQUE (id_expediente, tipo_acceso, id_referencia)
 );
 
@@ -313,7 +308,6 @@ CREATE TABLE expediente_historial (
     id_historial INT PRIMARY KEY AUTO_INCREMENT,
     id_expediente INT NOT NULL,
     id_usuario INT,
-
     tipo_evento ENUM(
         'creado',
         'modificado',
@@ -324,10 +318,8 @@ CREATE TABLE expediente_historial (
         'rechazado',
         'archivado'
     ) NOT NULL,
-
     observacion TEXT,
     fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
@@ -336,12 +328,9 @@ CREATE TABLE expediente_solicitud (
     id_solicitud INT PRIMARY KEY AUTO_INCREMENT,
     id_expediente INT NOT NULL,
     id_usuario_solicitante INT NOT NULL,
-
     estado ENUM('pendiente','aprobado','rechazado') DEFAULT 'pendiente',
-
     mensaje TEXT,
     fecha_solicitud DATETIME DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente),
     FOREIGN KEY (id_usuario_solicitante) REFERENCES usuario(id_usuario)
 );
@@ -351,38 +340,54 @@ CREATE INDEX idx_expediente_solicitud_exp ON expediente_solicitud(id_expediente)
 CREATE TABLE expediente_documento (
     id_documento INT PRIMARY KEY AUTO_INCREMENT,
     id_expediente INT NOT NULL,
-
     nombre VARCHAR(150) NOT NULL,
-
     version_actual INT DEFAULT 1,
-
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_expediente) REFERENCES expediente(id_expediente)
 );
 
 CREATE TABLE expediente_version (
     id_version INT PRIMARY KEY AUTO_INCREMENT,
     id_documento INT NOT NULL,
-
     version INT NOT NULL,
-
     ruta_archivo VARCHAR(255) NOT NULL,
     nombre_original VARCHAR(150),
     extension VARCHAR(10),
     peso BIGINT,
-
     id_usuario INT NOT NULL,
     comentario TEXT,
-
     fecha_subida DATETIME DEFAULT CURRENT_TIMESTAMP,
-
     FOREIGN KEY (id_documento) REFERENCES expediente_documento(id_documento),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
-
     UNIQUE (id_documento, version)
 );
 
 CREATE INDEX idx_expediente_doc ON expediente_documento(id_expediente);
 CREATE INDEX idx_version_doc ON expediente_version(id_documento);
 CREATE INDEX idx_historial_exp ON expediente_historial(id_expediente);
+
+CREATE TABLE plantilla (
+    id_plantilla INT PRIMARY KEY AUTO_INCREMENT,
+    titulo VARCHAR(150) NOT NULL,
+    descripcion TEXT,
+    id_usuario INT NOT NULL,
+    url_imagen VARCHAR(255),
+    ruta_archivo VARCHAR(255) NOT NULL,
+    estado ENUM('activo','inactivo') DEFAULT 'activo',
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+
+CREATE TABLE plantilla_acceso (
+    id_acceso INT PRIMARY KEY AUTO_INCREMENT,
+    id_plantilla INT NOT NULL,
+    tipo_acceso ENUM('usuario','area','rol','cargo','publico') NOT NULL,
+    id_referencia INT NULL,
+    permiso ENUM('ver','usar','editar') DEFAULT 'ver',
+    fecha_asignacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_plantilla) REFERENCES plantilla(id_plantilla),
+    UNIQUE (id_plantilla, tipo_acceso, id_referencia)
+);
+
+CREATE INDEX idx_plantilla_usuario ON plantilla(id_usuario);
+CREATE INDEX idx_plantilla_acceso ON plantilla_acceso(id_plantilla);
