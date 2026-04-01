@@ -11,8 +11,7 @@
                 FORMATO ÚNICO DE TRÁMITE (FUT)
             </h5>
 
-            <form action="#" method="POST" enctype="multipart/form-data">
-
+                <form id="formFut" enctype="multipart/form-data">
                 <!-- DEPENDENCIA -->
                 <div class="form-group">
                     <label><i class="fas fa-building"></i> Dependencia o autoridad</label>
@@ -133,3 +132,41 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+    document.getElementById("formFut").addEventListener("submit", function(e){
+        e.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch('../../ajax/ajax_fut.php?accion=guardar', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if(data.status){
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: 'FUT enviado correctamente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                this.reset();
+
+            } else {
+                Swal.fire('Error', data.msg, 'error');
+            }
+
+        });
+
+    });
+
+});
+</script>

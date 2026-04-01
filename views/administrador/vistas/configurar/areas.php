@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function() {
     cargarAreas();
 });
 
-// 🔥 GLOBAL
+//  GLOBAL
 function cargarAreas() {
     fetch('../../ajax/ajax_area.php?accion=listar')
     .then(res => res.json())
