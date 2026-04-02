@@ -27,46 +27,45 @@
                     <div class="form-row mt-3">
                         <div class="form-group col-md-6">
                             <label>Nombres</label>
-                            <input type="text" name="nombres" class="form-control" required>
+                            <input type="text" id="nombres" class="form-control" readonly>
                         </div>
 
                         <div class="form-group col-md-6">
                             <label>Apellidos</label>
-                            <input type="text" name="apellidos" class="form-control" required>
+                            <input type="text" id="apellidos" class="form-control" readonly>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label><i class="fas fa-id-badge"></i> Tipo de Documento</label>
-                            <select name="tipo_documento" class="form-control" required>
-                                <option value="">Seleccione</option>
-                                <option value="dni">DNI</option>
-                                <option value="ce">Carné de Extranjería</option>
-                                <option value="pasaporte">Pasaporte</option>
+                            <select id="tipo_documento" class="form-control" disabled>
+                                <option value="1">DNI</option>
+                                <option value="2">Carné de Extranjería</option>
+                                <option value="3">Pasaporte</option>
                             </select>
                         </div>
 
                         <div class="form-group col-md-6">
                             <label><i class="fas fa-hashtag"></i> Número de Documento</label>
-                            <input type="text" name="numero_documento" class="form-control" required>
+                            <input type="text" id="numero_documento" class="form-control" readonly>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label><i class="fas fa-map"></i> Dirección</label>
-                        <input type="text" name="direccion" class="form-control">
+                        <input type="text" id="direccion" class="form-control" readonly>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label><i class="fas fa-phone"></i> Teléfono</label>
-                            <input type="text" name="telefono" class="form-control">
+                            <input type="text" id="telefono" class="form-control" readonly>
                         </div>
 
                         <div class="form-group col-md-6">
                             <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
-                            <input type="email" name="correo" class="form-control">
+                            <input type="email" id="correo" class="form-control" readonly>
                         </div>
                     </div>
                 </div>
@@ -94,10 +93,7 @@
                         <i class="fas fa-paperclip"></i> Información Adicional
                     </h5>
 
-                    <div class="form-group mt-3">
-                        <label><i class="fas fa-calendar-alt"></i> Fecha</label>
-                        <input type="date" name="fecha" class="form-control">
-                    </div>
+ 
 
                     <div class="form-group">
                         <label>
@@ -134,7 +130,25 @@
 </div>
 
 <script>
+    function cargarUsuario(){
+
+    fetch('../../ajax/ajax_usuario.php')
+    .then(res => res.json())
+    .then(data => {
+
+        document.getElementById("nombres").value = data.nombres_usuario;
+        document.getElementById("apellidos").value = data.apellidos_usuario;
+        document.getElementById("tipo_documento").value = data.tipo_documento;
+        document.getElementById("numero_documento").value = data.numero_documento;
+        document.getElementById("direccion").value = data.direccion_usuario;
+        document.getElementById("telefono").value = data.celular_usuario;
+        document.getElementById("correo").value = data.email_per;
+
+    });
+}
 document.addEventListener("DOMContentLoaded", function(){
+
+    cargarUsuario(); // ✅ ahora sí se ejecuta
 
     document.getElementById("formFut").addEventListener("submit", function(e){
         e.preventDefault();
@@ -159,6 +173,7 @@ document.addEventListener("DOMContentLoaded", function(){
                 });
 
                 this.reset();
+                cargarUsuario(); // 🔥 recarga datos
 
             } else {
                 Swal.fire('Error', data.msg, 'error');

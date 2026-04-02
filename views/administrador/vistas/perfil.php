@@ -9,13 +9,18 @@
             </div>
 
             <div>
-                <h4 class="mb-1">
-                    <?php echo $_SESSION["nombre"] . " " . $_SESSION["apellido"]; ?>
-                </h4>
-
+                <h4 class="mb-1" id="nombreCompleto">
+    Cargando...
+</h4>
                 <p class="text-muted mb-0">
-                    <i class="fas fa-briefcase"></i> Área | Cargo | Programa
-                </p>
+    <i class="fas fa-briefcase"></i> 
+    <span id="infoLaboral">Cargando...</span>
+</p>
+
+<p class="text-muted mb-0">
+    <i class="fas fa-graduation-cap"></i> 
+    <span id="infoPrograma">Cargando...</span>
+</p>
             </div>
 
         </div>
@@ -29,7 +34,7 @@
                 <i class="fas fa-user-edit"></i> Editar Información Personal
             </h5>
 
-            <form action="actualizar_perfil.php" method="POST" enctype="multipart/form-data">
+            <form id="formPerfil">
 
                 <!-- DATOS PERSONALES -->
                 <h6 class="text-primary border-bottom pb-2">
@@ -39,12 +44,12 @@
                 <div class="form-row mt-3">
                     <div class="form-group col-md-6">
                         <label>Nombres</label>
-                        <input type="text" name="nombres" class="form-control" value="<?php echo $_SESSION['nombre']; ?>" required>
+                        <input type="text" name="nombres" class="form-control" required>
                     </div>
 
                     <div class="form-group col-md-6">
                         <label>Apellidos</label>
-                        <input type="text" name="apellidos" class="form-control" value="<?php echo $_SESSION['apellido']; ?>" required>
+                        <input type="text" name="apellidos" class="form-control" required>
                     </div>
                 </div>
 
@@ -69,9 +74,9 @@
                     <div class="form-group col-md-4">
                         <label>Tipo Documento</label>
                         <select name="tipo_documento" class="form-control">
-                            <option value="DNI">DNI</option>
-                            <option value="CE">Carnet de Extranjería</option>
-                            <option value="Pasaporte">Pasaporte</option>
+                            <option value="1">DNI</option>
+                            <option value="2">Carnet de Extranjería</option>
+                            <option value="3">Pasaporte</option>
                         </select>
                     </div>
 
@@ -94,17 +99,17 @@
                 <div class="form-row mt-3">
                     <div class="form-group col-md-4">
                         <label>Departamento</label>
-                        <input type="text" name="departamento" class="form-control">
+                        <select name="departamento" id="departamento" class="form-control"></select>
                     </div>
 
                     <div class="form-group col-md-4">
                         <label>Provincia</label>
-                        <input type="text" name="provincia" class="form-control">
+                        <select name="provincia" id="provincia" class="form-control"></select>
                     </div>
 
                     <div class="form-group col-md-4">
                         <label>Distrito</label>
-                        <input type="text" name="distrito" class="form-control">
+                        <select name="distrito" id="distrito" class="form-control"></select>
                     </div>
                 </div>
 
@@ -200,7 +205,6 @@
         </div>
     </div>
 </div>
-
 <script>
 function previewImage(event, id){
     const reader = new FileReader();
@@ -226,4 +230,165 @@ function validarPassword(){
 
     return true;
 }
+
+// CARGAR PERFIL COMPLETO
+function cargarPerfil(){
+
+    fetch('../../ajax/ajax_perfil_usuario.php?accion=perfil')
+    .then(res => res.json())
+    .then(data => {
+
+        let u = data.usuario;
+
+        // INPUTS
+        document.querySelector('[name="nombres"]').value = u.nombres_usuario ?? '';
+        document.querySelector('[name="apellidos"]').value = u.apellidos_usuario ?? '';
+        document.querySelector('[name="email_personal"]').value = u.email_per ?? '';
+        document.querySelector('[name="email_institucional"]').value = u.email_ins ?? '';
+        document.querySelector('[name="celular"]').value = u.celular_usuario ?? '';
+        document.querySelector('[name="tipo_documento"]').value = u.tipo_documento ?? '';
+        document.querySelector('[name="numero_identidad"]').value = u.numero_documento ?? '';
+        document.querySelector('[name="direccion_usuario"]').value = u.direccion_usuario ?? '';
+
+        // IMÁGENES 
+        const base = "/mesadepartespacaran/uploads/usuarios/";
+
+        document.getElementById("preview1").src = u.url_foto_usuario 
+            ? base + u.url_foto_usuario 
+            : "../../img/undraw_profile_1.svg";
+
+        document.getElementById("preview2").src = u.url_dni_usuario 
+            ? base + u.url_dni_usuario 
+            : "";
+
+        document.getElementById("preview3").src = u.url_firma 
+            ? base + u.url_firma 
+            : "";
+
+        // HEADER
+        document.getElementById("nombreCompleto").innerText = 
+            (u.nombres_usuario ?? '') + ' ' + (u.apellidos_usuario ?? '');
+
+        let texto = (data.cargos || []).map(c => 
+            c.nombre_area + " | " + c.cargo
+        ).join(" / ");
+
+        document.getElementById("infoLaboral").innerHTML = texto || 'Sin asignación';
+
+        let programas = (data.programas || []).map(p => 
+            p.programa_estudio
+        ).join(" / ");
+
+        document.getElementById("infoPrograma").innerHTML = programas || 'Sin programa asignado';
+
+        cargarDepartamentos(u);
+
+    });
+}
+
+// DEPARTAMENTOS
+function cargarDepartamentos(u){
+
+    fetch('../../ajax/ajax_ubigeo.php?accion=departamentos')
+    .then(res => res.json())
+    .then(data => {
+
+        let dep = document.getElementById("departamento");
+        dep.innerHTML = '<option value="">Seleccione</option>';
+
+        data.forEach(d => {
+            dep.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+        });
+
+        if(u.id_dep){
+            dep.value = u.id_dep;
+            cargarProvincias(u.id_dep, u);
+        }
+
+    });
+}
+
+// PROVINCIAS
+function cargarProvincias(id_dep, u = null){
+
+    fetch('../../ajax/ajax_ubigeo.php?accion=provincias&dep=' + id_dep)
+    .then(res => res.json())
+    .then(data => {
+
+        let prov = document.getElementById("provincia");
+        prov.innerHTML = '<option value="">Seleccione</option>';
+
+        data.forEach(p => {
+            prov.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
+
+        if(u && u.id_prov){
+            prov.value = u.id_prov;
+            cargarDistritos(u.id_prov, u);
+        }
+
+    });
+}
+
+// DISTRITOS
+function cargarDistritos(id_prov, u = null){
+
+    fetch('../../ajax/ajax_ubigeo.php?accion=distritos&prov=' + id_prov)
+    .then(res => res.json())
+    .then(data => {
+
+        let dist = document.getElementById("distrito");
+        dist.innerHTML = '<option value="">Seleccione</option>';
+
+        data.forEach(d => {
+            dist.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+        });
+
+        if(u && u.id_dis){
+            dist.value = u.id_dis;
+        }
+
+    });
+}
+
+// SUBMIT
+document.getElementById("formPerfil").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let formData = new FormData(this);
+
+    fetch('../../ajax/ajax_actualizar_perfil.php?accion=actualizar', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+
+        if(res.status === "ok"){
+            alert(res.mensaje);
+            cargarPerfil();
+        }
+
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error en la petición");
+    });
+
+});
+
+// EVENTOS
+document.addEventListener("DOMContentLoaded", function(){
+
+    cargarPerfil();
+
+    document.getElementById("departamento").addEventListener("change", function(){
+        cargarProvincias(this.value);
+    });
+
+    document.getElementById("provincia").addEventListener("change", function(){
+        cargarDistritos(this.value);
+    });
+
+});
 </script>

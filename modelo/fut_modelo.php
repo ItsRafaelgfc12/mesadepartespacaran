@@ -12,15 +12,26 @@ class FutModelo {
         }
 
         $id_usuario = $_SESSION['id_usuario'];
-        $id_tipo = 1; // FUT
         $codigo = "FUT-" . date('YmdHis');
 
         $asunto = $_POST['asunto'];
         $descripcion = $_POST['descripcion'];
-        $fecha = !empty($_POST['fecha']) ? $_POST['fecha'] : date('Y-m-d');
-        $lugar = "Pacarán";
 
-        // INSERT DOCUMENTO
+        $lugar = "Pacarán";
+        $id_area_origen = 12; // 🔥 área usuaria
+
+        // 🔍 OBTENER ID TIPO FUT
+        $stmtTipo = $conn->prepare("SELECT id_tipo FROM tipo_documento WHERE nombre = 'FUT' LIMIT 1");
+        $stmtTipo->execute();
+        $resTipo = $stmtTipo->get_result();
+
+        if(!$rowTipo = $resTipo->fetch_assoc()){
+            return ["status"=>false, "msg"=>"No existe tipo_documento FUT"];
+        }
+
+        $id_tipo = $rowTipo['id_tipo'];
+
+        // 📝 INSERT DOCUMENTO (fecha automática con NOW())
         $stmt = $conn->prepare("INSERT INTO documento (
             id_tipo,
             codigo_documento,
@@ -29,17 +40,18 @@ class FutModelo {
             fecha_emision,
             lugar,
             id_usuario_emisor,
+            id_area_origen,
             estado
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'enviado')");
+        ) VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, 'enviado')");
 
-        $stmt->bind_param("isssssi",
+        $stmt->bind_param("issssii",
             $id_tipo,
             $codigo,
             $asunto,
             $descripcion,
-            $fecha,
             $lugar,
-            $id_usuario
+            $id_usuario,
+            $id_area_origen
         );
 
         if(!$stmt->execute()){
@@ -63,10 +75,7 @@ class FutModelo {
 
             $nuevoNombre = "fut_" . time() . "." . $extension;
 
-            // RUTA REAL
             $rutaFisica = __DIR__ . "/../uploads/fut/" . $nuevoNombre;
-
-            // RUTA PARA BD
             $rutaBD = "uploads/fut/" . $nuevoNombre;
 
             if (!move_uploaded_file($tmp, $rutaFisica)) {
@@ -98,7 +107,7 @@ class FutModelo {
             $stmtAdj->execute();
         }
 
-        // HISTORIAL
+        // 📜 HISTORIAL - CREACIÓN
         $evento = "creado";
         $obs = "FUT registrado";
 
@@ -118,6 +127,149 @@ class FutModelo {
 
         $stmtHist->execute();
 
+        // 📬 DERIVACIÓN AUTOMÁTICA
+        $tipo_destino = "cargo";
+        $id_destino = 6; // mesa de partes
+
+        $stmtDer = $conn->prepare("INSERT INTO documento_derivacion (
+            id_documento,
+            tipo_destino,
+            id_destino,
+            estado
+        ) VALUES (?, ?, ?, 'pendiente')");
+
+        $stmtDer->bind_param("isi",
+            $id_documento,
+            $tipo_destino,
+            $id_destino
+        );
+
+        $stmtDer->execute();
+
+        // 📜 HISTORIAL - ENVÍO
+        $evento2 = "enviado";
+        $obs2 = "FUT enviado a mesa de partes";
+
+        $stmtHist2 = $conn->prepare("INSERT INTO documento_historial (
+            id_documento,
+            id_usuario,
+            tipo_evento,
+            tipo_destino,
+            id_destino,
+            observacion
+        ) VALUES (?, ?, ?, ?, ?, ?)");
+
+        $stmtHist2->bind_param("iissis",
+            $id_documento,
+            $id_usuario,
+            $evento2,
+            $tipo_destino,
+            $id_destino,
+            $obs2
+        );
+
+        $stmtHist2->execute();
+
         return ["status"=>true];
     }
+
+    public function listarMisFuts(){
+
+    global $conn;
+
+    $id_usuario = $_SESSION['id_usuario'];
+
+    $stmt = $conn->prepare("SELECT 
+        id_documento,
+        codigo_documento,
+        asunto,
+        estado,
+        fecha_emision
+    FROM documento 
+    WHERE id_usuario_emisor = ?
+    ORDER BY id_documento DESC");
+
+    $stmt->bind_param("i", $id_usuario);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    $data = [];
+
+    while($row = $result->fetch_assoc()){
+        $data[] = $row;
+    }
+
+    return $data;
 }
+public function historial($id_documento){
+
+    global $conn;
+
+    // =========================
+    // 📜 HISTORIAL
+    // =========================
+    $stmt = $conn->prepare("SELECT 
+        h.tipo_evento,
+        h.observacion,
+        h.fecha,
+        u.nombres_usuario
+    FROM documento_historial h
+    LEFT JOIN usuario u ON u.id_usuario = h.id_usuario
+    WHERE h.id_documento = ?
+    ORDER BY h.fecha ASC");
+
+    $stmt->bind_param("i", $id_documento);
+    $stmt->execute();
+
+    $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    // =========================
+    // 🔁 DERIVACIONES (CON NOMBRE REAL)
+    // =========================
+    $stmt2 = $conn->prepare("SELECT 
+        d.tipo_destino,
+        d.id_destino,
+        d.estado,
+        d.fecha_envio,
+
+        CASE 
+            WHEN d.tipo_destino = 'usuario' THEN u.nombres_usuario
+            WHEN d.tipo_destino = 'area' THEN a.nombre_area
+            WHEN d.tipo_destino = 'cargo' THEN c.cargo
+            WHEN d.tipo_destino = 'rol' THEN r.rol
+            WHEN d.tipo_destino = 'programa' THEN p.programa_estudio
+            ELSE 'Desconocido'
+        END AS destino_nombre
+
+    FROM documento_derivacion d
+
+    LEFT JOIN usuario u 
+        ON (d.tipo_destino = 'usuario' AND d.id_destino = u.id_usuario)
+
+    LEFT JOIN area a 
+        ON (d.tipo_destino = 'area' AND d.id_destino = a.id_area)
+
+    LEFT JOIN cargo c 
+        ON (d.tipo_destino = 'cargo' AND d.id_destino = c.id_cargo)
+
+    LEFT JOIN rol r 
+        ON (d.tipo_destino = 'rol' AND d.id_destino = r.id_rol)
+
+    LEFT JOIN programa_estudio p 
+        ON (d.tipo_destino = 'programa' AND d.id_destino = p.id_programa_estudio)
+
+    WHERE d.id_documento = ?");
+
+    $stmt2->bind_param("i", $id_documento);
+    $stmt2->execute();
+
+    $derivaciones = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    return [
+        "historial" => $historial,
+        "derivaciones" => $derivaciones
+    ];
+}
+}
+

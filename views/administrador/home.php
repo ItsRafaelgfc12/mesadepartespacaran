@@ -76,6 +76,7 @@ $vista = $_GET["vista"] ?? "inicio";
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Tramites disponibles:</h6>
                         <a class="collapse-item" href="home.php?vista=fut/crear">FUT</a>
+                        <a class="collapse-item" href="home.php?vista=fut/ver">Ver mis futs</a>
                         <a class="collapse-item" href="home.php?vista=requerimiento/crear">Requerimiento</a>
                         <h6 class="collapse-header">Documentos:</h6>
                         <a class="collapse-item" href="home.php?vista=documentos/pendiente">Pendientes</a>

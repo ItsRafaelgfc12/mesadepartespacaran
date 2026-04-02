@@ -14,4 +14,13 @@ switch ($accion) {
 
         echo json_encode($respuesta);
         break;
+    case 'listar_mis_futs':
+        $fut = new FutModelo();
+        echo json_encode($fut->listarMisFuts());
+        break;
+
+    case 'historial':
+        $fut = new FutModelo();
+        echo json_encode($fut->historial($_GET['id']));
+        break;
 }
