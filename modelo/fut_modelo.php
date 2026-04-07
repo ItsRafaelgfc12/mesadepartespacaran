@@ -18,9 +18,9 @@ class FutModelo {
         $descripcion = $_POST['descripcion'];
 
         $lugar = "Pacarán";
-        $id_area_origen = 12; // 🔥 área usuaria
+        $id_area_origen = 12; //  área usuaria
 
-        // 🔍 OBTENER ID TIPO FUT
+        //  OBTENER ID TIPO FUT
         $stmtTipo = $conn->prepare("SELECT id_tipo FROM tipo_documento WHERE nombre = 'FUT' LIMIT 1");
         $stmtTipo->execute();
         $resTipo = $stmtTipo->get_result();
@@ -31,7 +31,7 @@ class FutModelo {
 
         $id_tipo = $rowTipo['id_tipo'];
 
-        // 📝 INSERT DOCUMENTO (fecha automática con NOW())
+
         $stmt = $conn->prepare("INSERT INTO documento (
             id_tipo,
             codigo_documento,
@@ -60,7 +60,7 @@ class FutModelo {
 
         $id_documento = $conn->insert_id;
 
-        // 📎 ARCHIVO
+        //  ARCHIVO
         if (!empty($_FILES['doc_anexado']['name'])) {
 
             $nombreOriginal = $_FILES['doc_anexado']['name'];
@@ -107,7 +107,7 @@ class FutModelo {
             $stmtAdj->execute();
         }
 
-        // 📜 HISTORIAL - CREACIÓN
+        // HISTORIAL - CREACIÓN
         $evento = "creado";
         $obs = "FUT registrado";
 
@@ -127,7 +127,7 @@ class FutModelo {
 
         $stmtHist->execute();
 
-        // 📬 DERIVACIÓN AUTOMÁTICA
+        // DERIVACIÓN AUTOMÁTICA
         $tipo_destino = "cargo";
         $id_destino = 6; // mesa de partes
 
@@ -146,7 +146,6 @@ class FutModelo {
 
         $stmtDer->execute();
 
-        // 📜 HISTORIAL - ENVÍO
         $evento2 = "enviado";
         $obs2 = "FUT enviado a mesa de partes";
 
@@ -206,9 +205,6 @@ public function historial($id_documento){
 
     global $conn;
 
-    // =========================
-    // 📜 HISTORIAL
-    // =========================
     $stmt = $conn->prepare("SELECT 
         h.tipo_evento,
         h.observacion,
@@ -224,9 +220,6 @@ public function historial($id_documento){
 
     $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    // =========================
-    // 🔁 DERIVACIONES (CON NOMBRE REAL)
-    // =========================
     $stmt2 = $conn->prepare("SELECT 
         d.tipo_destino,
         d.id_destino,

@@ -161,33 +161,43 @@
 <div class="modal fade" id="passwordModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-
             <form action="cambiar_password.php" method="POST" onsubmit="return validarPassword()">
-
                 <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-key"></i> Cambiar Contraseña
-                    </h5>
+                        <h5 class="modal-title">
+                            <i class="bi bi-key-fill"></i> Cambiar contraseña
+                        </h5>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-
                 <div class="modal-body">
-
                     <div class="form-group">
                         <label>Contraseña Actual</label>
-                        <input type="password" name="password_actual" class="form-control" required>
+                        <div class="input-group">
+                            <input type="password" name="password_actual" class="form-control" required>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary btn-reveal" type="button"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label>Nueva Contraseña</label>
-                        <input type="password" id="nueva" name="password_nueva" class="form-control" required>
+                        <div class="input-group">
+                            <input type="password" id="nueva" name="password_nueva" class="form-control" required>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary btn-reveal" type="button"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label>Confirmar Contraseña</label>
-                        <input type="password" id="confirmar" class="form-control" required>
+                        <div class="input-group">
+                            <input type="password" id="confirmar" class="form-control" required>
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary btn-reveal" type="button"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
                     </div>
-
                 </div>
 
                 <div class="modal-footer">
@@ -219,12 +229,12 @@ function validarPassword(){
     const confirmar = document.getElementById("confirmar").value;
 
     if(nueva !== confirmar){
-        alert("Las contraseñas no coinciden");
+        Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
         return false;
     }
 
     if(nueva.length < 6){
-        alert("Mínimo 6 caracteres");
+        Swal.fire('Atención', 'La contraseña debe tener al menos 6 caracteres', 'warning');
         return false;
     }
 
@@ -233,11 +243,9 @@ function validarPassword(){
 
 // CARGAR PERFIL COMPLETO
 function cargarPerfil(){
-
     fetch('../../ajax/ajax_perfil_usuario.php?accion=perfil')
     .then(res => res.json())
     .then(data => {
-
         let u = data.usuario;
 
         // INPUTS
@@ -252,50 +260,32 @@ function cargarPerfil(){
 
         // IMÁGENES 
         const base = "/mesadepartespacaran/uploads/usuarios/";
+        const noImage = "../../img/imagenotfound.png";
 
-        document.getElementById("preview1").src = u.url_foto_usuario 
-            ? base + u.url_foto_usuario 
-            : "../../img/undraw_profile_1.svg";
-
-        document.getElementById("preview2").src = u.url_dni_usuario 
-            ? base + u.url_dni_usuario 
-            : "";
-
-        document.getElementById("preview3").src = u.url_firma 
-            ? base + u.url_firma 
-            : "";
+        document.getElementById("preview1").src = u.url_foto_usuario ? base + u.url_foto_usuario : noImage;
+        document.getElementById("preview2").src = u.url_dni_usuario ? base + u.url_dni_usuario : noImage;
+        document.getElementById("preview3").src = u.url_firma ? base + u.url_firma : noImage;
 
         // HEADER
-        document.getElementById("nombreCompleto").innerText = 
-            (u.nombres_usuario ?? '') + ' ' + (u.apellidos_usuario ?? '');
+        document.getElementById("nombreCompleto").innerText = (u.nombres_usuario ?? '') + ' ' + (u.apellidos_usuario ?? '');
 
-        let texto = (data.cargos || []).map(c => 
-            c.nombre_area + " | " + c.cargo
-        ).join(" / ");
+        let texto = (data.cargos || []).map(c => c.nombre_area + " | " + c.cargo).join(" / ");
+        document.getElementById("infoLaboral").innerHTML = texto || 'Sin cargo asignado';
 
-        document.getElementById("infoLaboral").innerHTML = texto || 'Sin asignación';
-
-        let programas = (data.programas || []).map(p => 
-            p.programa_estudio
-        ).join(" / ");
-
+        let programas = (data.programas || []).map(p => p.programa_estudio).join(" / ");
         document.getElementById("infoPrograma").innerHTML = programas || 'Sin programa asignado';
 
         cargarDepartamentos(u);
-
     });
 }
 
-// DEPARTAMENTOS
+// UBIGEO: DEPARTAMENTOS
 function cargarDepartamentos(u){
-
     fetch('../../ajax/ajax_ubigeo.php?accion=departamentos')
     .then(res => res.json())
     .then(data => {
-
         let dep = document.getElementById("departamento");
         dep.innerHTML = '<option value="">Seleccione</option>';
-
         data.forEach(d => {
             dep.innerHTML += `<option value="${d.id}">${d.name}</option>`;
         });
@@ -304,20 +294,16 @@ function cargarDepartamentos(u){
             dep.value = u.id_dep;
             cargarProvincias(u.id_dep, u);
         }
-
     });
 }
 
-// PROVINCIAS
+// UBIGEO: PROVINCIAS
 function cargarProvincias(id_dep, u = null){
-
     fetch('../../ajax/ajax_ubigeo.php?accion=provincias&dep=' + id_dep)
     .then(res => res.json())
     .then(data => {
-
         let prov = document.getElementById("provincia");
         prov.innerHTML = '<option value="">Seleccione</option>';
-
         data.forEach(p => {
             prov.innerHTML += `<option value="${p.id}">${p.name}</option>`;
         });
@@ -326,20 +312,16 @@ function cargarProvincias(id_dep, u = null){
             prov.value = u.id_prov;
             cargarDistritos(u.id_prov, u);
         }
-
     });
 }
 
-// DISTRITOS
+// UBIGEO: DISTRITOS
 function cargarDistritos(id_prov, u = null){
-
     fetch('../../ajax/ajax_ubigeo.php?accion=distritos&prov=' + id_prov)
     .then(res => res.json())
     .then(data => {
-
         let dist = document.getElementById("distrito");
         dist.innerHTML = '<option value="">Seleccione</option>';
-
         data.forEach(d => {
             dist.innerHTML += `<option value="${d.id}">${d.name}</option>`;
         });
@@ -347,13 +329,18 @@ function cargarDistritos(id_prov, u = null){
         if(u && u.id_dis){
             dist.value = u.id_dis;
         }
-
     });
 }
 
-// SUBMIT
+// SUBMIT CON SWEETALERT2
 document.getElementById("formPerfil").addEventListener("submit", function(e){
     e.preventDefault();
+
+    // Bloquear botón para evitar doble clic
+    const btnSubmit = this.querySelector('button[type="submit"]');
+    const originalContent = btnSubmit.innerHTML;
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
 
     let formData = new FormData(this);
 
@@ -363,23 +350,32 @@ document.getElementById("formPerfil").addEventListener("submit", function(e){
     })
     .then(res => res.json())
     .then(res => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalContent;
 
         if(res.status === "ok"){
-            alert(res.mensaje);
-            cargarPerfil();
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: res.mensaje,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            cargarPerfil(); // Recargar datos en la vista
+        } else {
+            Swal.fire('Error', res.mensaje, 'error');
         }
-
     })
     .catch(err => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalContent;
         console.error(err);
-        alert("Error en la petición");
+        Swal.fire('Error', 'No se pudo procesar la solicitud', 'error');
     });
-
 });
 
-// EVENTOS
+// EVENTOS INICIALES
 document.addEventListener("DOMContentLoaded", function(){
-
     cargarPerfil();
 
     document.getElementById("departamento").addEventListener("change", function(){
@@ -389,6 +385,77 @@ document.addEventListener("DOMContentLoaded", function(){
     document.getElementById("provincia").addEventListener("change", function(){
         cargarDistritos(this.value);
     });
+});
 
+// Manejo del formulario de cambio de contraseña
+// LÓGICA PARA VER/OCULTAR CONTRASEÑA
+document.querySelectorAll('.btn-reveal').forEach(boton => {
+    boton.addEventListener('click', function() {
+        const input = this.closest('.input-group').querySelector('input');
+        const icono = this.querySelector('i');
+        
+        if (input.type === "password") {
+            input.type = "text";
+            icono.classList.remove('fa-eye');
+            icono.classList.add('fa-eye-slash');
+        } else {
+            input.type = "password";
+            icono.classList.remove('fa-eye-slash');
+            icono.classList.add('fa-eye');
+        }
+    });
+});
+
+// REVISIÓN DEL SUBMIT DEL MODAL
+document.getElementById("passwordModal").querySelector("form").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    if (!validarPassword()) return;
+
+    const btnSubmit = this.querySelector('button[type="submit"]');
+    const originalContent = btnSubmit.innerHTML;
+    
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando...';
+
+    // Usamos FormData para capturar exactamente los nombres del input
+    let formData = new FormData(this);
+
+    fetch('../../ajax/ajax_cambiar_password.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalContent;
+
+        if (data.status === "ok") {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: data.mensaje,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            $('#passwordModal').modal('hide');
+            this.reset();
+            // Reseteamos los iconos de los ojos también
+            this.querySelectorAll('i').forEach(i => {
+                i.classList.remove('fa-eye-slash');
+                i.classList.add('fa-eye');
+            });
+            this.querySelectorAll('input').forEach(input => input.type = "password");
+            
+        } else {
+            Swal.fire('Error', data.mensaje, 'error');
+        }
+    })
+    .catch(err => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalContent;
+        Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
+    });
 });
 </script>

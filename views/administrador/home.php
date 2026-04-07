@@ -4,6 +4,10 @@ if (!isset($_SESSION["id_usuario"])) {
     header("Location: ../../index.php");
     exit;
 }
+// 2. Cabeceras para evitar el almacenamiento en caché (Soluciona el botón atrás)
+header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+header("Pragma: no-cache"); // HTTP 1.0.
+header("Expires: 0"); // Proxies.
 
 // vista por defecto (si no se envía ?vista=... usa "inicio")
 $vista = $_GET["vista"] ?? "inicio";
@@ -308,13 +312,22 @@ $vista = $_GET["vista"] ?? "inicio";
 
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                                     <?php echo $_SESSION["nombre"] . " " . $_SESSION["apellido"]; ?>
                                 </span>
-                                <img class="img-profile rounded-circle"
-                                    src="../../img/undraw_profile.svg">
+                                <img class="img-profile rounded-circle" 
+                                    src="<?php 
+                                        // 1. Obtenemos el nombre que viene de validar_login.php
+                                        $nombre_archivo = $_SESSION["foto"] ?? ''; 
+                                        
+                                        // 2. Si hay nombre, imprimimos la ruta. Si no, la imagen por defecto.
+                                        if (!empty($nombre_archivo)) {
+                                            echo "../../uploads/usuarios/" . $nombre_archivo;
+                                        } else {
+                                            echo "../../img/undraw_profile.svg";
+                                        }
+                                    ?>">
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
@@ -395,7 +408,7 @@ $vista = $_GET["vista"] ?? "inicio";
                 <div class="modal-body">Seleccion "Salir" para cerrar tu sesion actual</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancelar</button>
-                    <a class="btn btn-primary" href="../../index.php">Salir</a>
+                    <a class="btn btn-primary" href="../../librerias/logout.php">Salir</a>
                 </div>
             </div>
         </div>
@@ -411,3 +424,11 @@ $vista = $_GET["vista"] ?? "inicio";
 </body>
 
 </html>
+<script>
+    // Forzar recarga si se usa el botón atrás para validar sesión con el servidor
+    window.onpageshow = function(event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    };
+</script>

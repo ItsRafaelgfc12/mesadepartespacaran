@@ -86,6 +86,7 @@ CREATE TABLE usuario (
     id_dis VARCHAR(6),
 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,    
     last_session DATETIME,
+    contrasena VARCHAR(255),
     UNIQUE (email_per),
 	UNIQUE (email_ins),
     FOREIGN KEY (id_estado) REFERENCES estado_usuario(id_estado),

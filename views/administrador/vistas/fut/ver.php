@@ -128,17 +128,16 @@ function cargarFuts(){
                     <td>${i+1}</td>
                     <td><strong>${row.codigo_documento}</strong></td>
                     <td>${row.asunto}</td>
-                    <td>
-                        <span class="badge badge-${badgeEstado(row.estado)}">
-                            ${textoEstado(row.estado)}
-                        </span>
-                    </td>
+                    <td><span class="badge badge-${badgeEstado(row.estado)}">${textoEstado(row.estado)}</span></td>
                     <td>${row.fecha_emision}</td>
                     <td class="text-center">
-                        <button class="btn btn-info btn-sm"
-                            onclick="verHistorial(${row.id_documento})">
+                        <button class="btn btn-info btn-sm" onclick="verHistorial(${row.id_documento})" title="Ver Seguimiento">
                             <i class="fas fa-eye"></i>
                         </button>
+                        
+                        <a href="../../pdf/generar_pdf_fut.php?id=${row.id_documento}" target="_blank" class="btn btn-danger btn-sm" title="Descargar PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
                     </td>
                 </tr>
             `;
