@@ -71,32 +71,39 @@
     padding-left: 30px;
     border-left: 3px solid #007bff;
 }
-
 .timeline-item {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
-
 .timeline-item::before {
     content: "";
     position: absolute;
-    left: -10px;
+    left: -38px;
     top: 5px;
     width: 15px;
     height: 15px;
     border-radius: 50%;
     background: #007bff;
+    border: 2px solid #fff;
 }
-
-.timeline-item.success::before { background: #28a745; }
-.timeline-item.warning::before { background: #ffc107; }
-.timeline-item.info::before { background: #17a2b8; }
-.timeline-item.secondary::before { background: #6c757d; }
+/* Colores de los puntos */
+.timeline-item.primary::before { background: #4e73df; }
+.timeline-item.success::before { background: #1cc88a; }
+.timeline-item.warning::before { background: #f6c23e; }
+.timeline-item.danger::before { background: #e74a3b; }
+.timeline-item.info::before { background: #36b9cc; }
+.timeline-item.dark::before { background: #5a5c69; }
+.timeline-item.secondary::before { background: #858796; }
 
 .timeline-content {
     background: #f8f9fa;
-    padding: 10px 15px;
+    padding: 12px 18px;
     border-radius: 8px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+}
+.btn-adjunto {
+    margin-top: 10px;
+    display: inline-block;
 }
 </style>
 
@@ -150,66 +157,83 @@ function cargarFuts(){
 // 👁️ VER HISTORIAL (TIMELINE)
 // ==========================
 function verHistorial(id){
-
     fetch('../../ajax/ajax_fut.php?accion=historial&id=' + id)
     .then(res => res.json())
     .then(data => {
-
+        // Unificamos y pintamos
         pintarTimeline(data.historial, data.derivaciones);
-
         $('#modalHistorial').modal('show');
     });
 }
 
 // ==========================
-// 🎯 TIMELINE
+// 🎯 PINTAR TIMELINE UNIFICADO
 // ==========================
 function pintarTimeline(historial, derivaciones){
-
     let cont = document.getElementById("timelineHistorial");
     cont.innerHTML = "";
+    
+    let combinedTimeline = [];
 
-    // HISTORIAL
+    // 1. Mapeamos Eventos del Historial
     historial.forEach(item => {
-
         let color = "secondary";
-
         if(item.tipo_evento === 'creado') color = "primary";
         if(item.tipo_evento === 'enviado') color = "info";
-        if(item.tipo_evento === 'recibido') color = "warning";
-        if(item.tipo_evento === 'finalizado') color = "success";
+        if(item.tipo_evento === 'atendido') color = "warning";
+        if(item.tipo_evento === 'archivado') color = "dark";
 
-        cont.innerHTML += `
-            <div class="timeline-item ${color}">
-                <div class="timeline-content">
-                    <strong>${item.tipo_evento.toUpperCase()}</strong><br>
-                    ${item.observacion ?? ''}
-                    <br>
-                    <small>${item.fecha} - ${item.nombres_usuario ?? ''}</small>
-                </div>
-            </div>
-        `;
+        combinedTimeline.push({
+            fecha: item.fecha,
+            color: color,
+            titulo: item.tipo_evento.toUpperCase(),
+            descripcion: item.observacion ?? '',
+            usuario: item.nombres_usuario ?? 'Sistema',
+            archivo: item.ruta_archivo_final // Archivo final si es 'archivado'
+        });
     });
 
-    // DERIVACIONES
+    // 2. Mapeamos Derivaciones
     derivaciones.forEach(item => {
+        combinedTimeline.push({
+            fecha: item.fecha_envio,
+            color: "info",
+            titulo: "DERIVADO",
+            descripcion: `${item.tipo_destino.toUpperCase()} → ${item.destino_nombre} <br> <span class="badge badge-secondary">${item.estado}</span>`,
+            usuario: "Sistema",
+            archivo: item.ruta_anexo // Anexo de derivación si existe
+        });
+    });
+
+    // 3. Ordenamos por fecha (Lo más nuevo arriba)
+    combinedTimeline.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    // 4. Renderizamos
+    combinedTimeline.forEach(item => {
+        // Si hay archivo, preparamos el botón
+        let btnArchivo = item.archivo 
+            ? `<div class="btn-adjunto">
+                <a href="../../${item.archivo}" target="_blank" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-file-pdf"></i> Ver Documento Adjunto
+                </a>
+               </div>` 
+            : '';
 
         cont.innerHTML += `
-            <div class="timeline-item info">
+            <div class="timeline-item ${item.color}">
                 <div class="timeline-content">
-                    <i class="fas fa-share text-primary"></i>
-                    <strong>DERIVADO</strong><br>
-                    ${item.tipo_destino.toUpperCase()} → ${item.destino_nombre}
-                    <br>
-                    <span class="badge badge-secondary">${item.estado}</span>
-                    <br>
-                    <small>${item.fecha_envio}</small>
+                    <div class="d-flex justify-content-between">
+                        <strong>${item.titulo}</strong>
+                        <small class="text-muted">${item.fecha}</small>
+                    </div>
+                    <p class="mb-1 text-dark">${item.descripcion}</p>
+                    <small class="text-primary font-weight-bold"><i class="fas fa-user-edit"></i> ${item.usuario}</small>
+                    ${btnArchivo}
                 </div>
             </div>
         `;
     });
 }
-
 // ==========================
 // 🎨 ESTADOS
 // ==========================

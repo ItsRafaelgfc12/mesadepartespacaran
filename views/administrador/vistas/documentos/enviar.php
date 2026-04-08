@@ -3,122 +3,118 @@
 </h1>
 
 <div class="container-fluid">
-
     <div class="card shadow">
         <div class="card-body">
-
-            <form action="guardar_documento.php" method="POST" enctype="multipart/form-data">
-
-                <!-- DATOS DEL DOCUMENTO -->
+            <form id="formNuevoDocumento" enctype="multipart/form-data">
                 <h6 class="text-primary border-bottom pb-2">
                     <i class="fas fa-info-circle"></i> Información del Documento
                 </h6>
 
-                <div class="form-group mt-3">
-                    <label>Código Documento</label>
-                    <input type="text" name="codigo_documento" class="form-control" required>
+                <div class="row">
+                    <div class="col-md-4 form-group mt-3">
+                        <label>Código / Nro de Documento</label>
+                        <input type="text" name="codigo_documento" class="form-control" placeholder="Ej: OFICIO-001-2026-AREA" required>
+                    </div>
+                    <div class="col-md-8 form-group mt-3">
+                        <label>Asunto</label>
+                        <input type="text" name="asunto" class="form-control" required>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Asunto</label>
-                    <input type="text" name="asunto" class="form-control" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Descripción</label>
+                    <label>Descripción / Proveído</label>
                     <textarea name="descripcion" class="form-control" rows="4"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Archivo</label>
-                    <input type="file" name="url_doc" class="form-control-file">
+                    <label>Archivo Principal (PDF)</label>
+                    <input type="file" name="url_doc" class="form-control-file" accept=".pdf" required>
                 </div>
 
                 <hr>
 
-                <!-- TIPO DE ENVÍO -->
                 <h6 class="text-primary border-bottom pb-2">
-                    <i class="fas fa-share"></i> Tipo de Envío
+                    <i class="fas fa-share"></i> Destinatario
                 </h6>
 
-                <div class="form-group mt-3">
-                    <label>Enviar a:</label>
-                    <select name="tipo_envio" id="tipo_envio" class="form-control" onchange="mostrarDestino()" required>
-                        <option value="">Seleccione</option>
-                        <option value="usuario">Usuario</option>
-                        <option value="area">Área</option>
-                        <option value="programa">Programa</option>
-                        <option value="rol">Rol</option>
-                        <option value="cargo">Cargo</option>
-                    </select>
+                <div class="row">
+                    <div class="col-md-6 form-group mt-3">
+                        <label>Enviar a:</label>
+                        <select name="tipo_envio" id="tipo_envio" class="form-control" onchange="cargarDestinosInternos(this.value)" required>
+                            <option value="">Seleccione tipo</option>
+                            <option value="usuario">Usuario Directo</option>
+                            <option value="area">Área / Oficina</option>
+                            <option value="programa">Programa de Estudios</option>
+                            <option value="rol">Rol del Sistema</option>
+                            <option value="cargo">Cargo Específico</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 form-group mt-3">
+                        <label>Seleccionar Destino</label>
+                        <select name="id_destino" id="id_destino" class="form-control" required>
+                            <option value="">Primero seleccione tipo...</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- DESTINOS DINÁMICOS -->
-
-                <div id="destino_usuario" class="destino d-none">
-                    <label>Seleccionar Usuario</label>
-                    <select name="id_usuario_destino" class="form-control">
-                        <option value="">Seleccione usuario</option>
-                        <!-- foreach usuarios -->
-                    </select>
-                </div>
-
-                <div id="destino_area" class="destino d-none">
-                    <label>Seleccionar Área</label>
-                    <select name="id_area_destino" class="form-control">
-                        <option value="">Seleccione área</option>
-                    </select>
-                </div>
-
-                <div id="destino_programa" class="destino d-none">
-                    <label>Seleccionar Programa</label>
-                    <select name="id_programa_destino" class="form-control">
-                        <option value="">Seleccione programa</option>
-                    </select>
-                </div>
-
-                <div id="destino_rol" class="destino d-none">
-                    <label>Seleccionar Rol</label>
-                    <select name="id_rol_destino" class="form-control">
-                        <option value="">Seleccione rol</option>
-                    </select>
-                </div>
-
-                <div id="destino_cargo" class="destino d-none">
-                    <label>Seleccionar Cargo</label>
-                    <select name="id_cargo_destino" class="form-control">
-                        <option value="">Seleccione cargo</option>
-                    </select>
-                </div>
-
-                <br>
-
-                <!-- BOTÓN -->
-                <div class="text-right">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> Enviar Documento
+                <div class="text-right mt-4">
+                    <button type="submit" id="btnEnviarDoc" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Registrar y Enviar Documento
                     </button>
                 </div>
-
             </form>
-
         </div>
     </div>
-
 </div>
 
 <script>
-function mostrarDestino() {
-    const tipo = document.getElementById("tipo_envio").value;
-
-    // Ocultar todos
-    document.querySelectorAll('.destino').forEach(div => {
-        div.classList.add('d-none');
-    });
-
-    // Mostrar el seleccionado
-    if(tipo){
-        document.getElementById("destino_" + tipo).classList.remove('d-none');
+// Reutilizamos la lógica de carga dinámica que ya tenemos en utilitarios
+function cargarDestinosInternos(tipo) {
+    const select = document.getElementById('id_destino');
+    if(!tipo) { 
+        select.innerHTML = '<option value="">Primero seleccione tipo...</option>'; 
+        return; 
     }
+    
+    fetch(`../../ajax/ajax_utilitarios.php?accion=listar_destinos&tipo=${tipo}`)
+    .then(res => res.json())
+    .then(data => {
+        select.innerHTML = '<option value="">Seleccione el destinatario</option>';
+        data.forEach(item => {
+            select.innerHTML += `<option value="${item.id}">${item.nombre}</option>`;
+        });
+    });
 }
+
+document.getElementById("formNuevoDocumento").onsubmit = function(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btnEnviarDoc");
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+    let formData = new FormData(this);  
+
+    fetch('../../ajax/ajax_gestion_documentos.php?accion=registrar_documento_interno', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Registrar y Enviar Documento';
+        
+        if (data.status === "ok") {
+            Swal.fire('¡Éxito!', data.mensaje, 'success').then(() => {
+                location.reload(); // O redirigir a la lista de enviados
+            });
+        } else {
+            Swal.fire('Error', data.mensaje, 'error');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        console.error(err);
+    });
+};
 </script>

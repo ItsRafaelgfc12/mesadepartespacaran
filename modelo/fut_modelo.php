@@ -201,62 +201,49 @@ class FutModelo {
 
     return $data;
 }
-public function historial($id_documento){
-
+public function historial($id_documento) {
     global $conn;
 
+    // 1. Obtener Historial (Eventos) + Archivo Final si existe
     $stmt = $conn->prepare("SELECT 
-        h.tipo_evento,
-        h.observacion,
-        h.fecha,
-        u.nombres_usuario
+        h.tipo_evento, h.observacion, h.fecha, u.nombres_usuario,
+        a.ruta_archivo_final
     FROM documento_historial h
     LEFT JOIN usuario u ON u.id_usuario = h.id_usuario
+    LEFT JOIN documento_archivo a ON (h.id_documento = a.id_documento AND h.tipo_evento = 'archivado')
     WHERE h.id_documento = ?
     ORDER BY h.fecha ASC");
 
     $stmt->bind_param("i", $id_documento);
     $stmt->execute();
-
     $historial = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+    // 2. Obtener Derivaciones + Anexos subidos en ese momento
     $stmt2 = $conn->prepare("SELECT 
-        d.tipo_destino,
-        d.id_destino,
-        d.estado,
-        d.fecha_envio,
-
+        d.tipo_destino, d.id_destino, d.estado, d.fecha_envio,
         CASE 
-            WHEN d.tipo_destino = 'usuario' THEN u.nombres_usuario
-            WHEN d.tipo_destino = 'area' THEN a.nombre_area
+            WHEN d.tipo_destino = 'usuario' THEN us.nombres_usuario
+            WHEN d.tipo_destino = 'area' THEN ar.nombre_area
             WHEN d.tipo_destino = 'cargo' THEN c.cargo
             WHEN d.tipo_destino = 'rol' THEN r.rol
             WHEN d.tipo_destino = 'programa' THEN p.programa_estudio
             ELSE 'Desconocido'
-        END AS destino_nombre
-
+        END AS destino_nombre,
+        (SELECT ruta_archivo FROM documento_adjuntos 
+         WHERE id_documento = d.id_documento 
+         AND ABS(TIMESTAMPDIFF(SECOND, fecha_subida, d.fecha_envio)) < 10 
+         LIMIT 1) as ruta_anexo
     FROM documento_derivacion d
-
-    LEFT JOIN usuario u 
-        ON (d.tipo_destino = 'usuario' AND d.id_destino = u.id_usuario)
-
-    LEFT JOIN area a 
-        ON (d.tipo_destino = 'area' AND d.id_destino = a.id_area)
-
-    LEFT JOIN cargo c 
-        ON (d.tipo_destino = 'cargo' AND d.id_destino = c.id_cargo)
-
-    LEFT JOIN rol r 
-        ON (d.tipo_destino = 'rol' AND d.id_destino = r.id_rol)
-
-    LEFT JOIN programa_estudio p 
-        ON (d.tipo_destino = 'programa' AND d.id_destino = p.id_programa_estudio)
-
-    WHERE d.id_documento = ?");
+    LEFT JOIN usuario us ON (d.tipo_destino = 'usuario' AND d.id_destino = us.id_usuario)
+    LEFT JOIN area ar ON (d.tipo_destino = 'area' AND d.id_destino = ar.id_area)
+    LEFT JOIN cargo c ON (d.tipo_destino = 'cargo' AND d.id_destino = c.id_cargo)
+    LEFT JOIN rol r ON (d.tipo_destino = 'rol' AND d.id_destino = r.id_rol)
+    LEFT JOIN programa_estudio p ON (d.tipo_destino = 'programa' AND d.id_destino = p.id_programa_estudio)
+    WHERE d.id_documento = ?
+    ORDER BY d.fecha_envio ASC");
 
     $stmt2->bind_param("i", $id_documento);
     $stmt2->execute();
-
     $derivaciones = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
 
     return [
