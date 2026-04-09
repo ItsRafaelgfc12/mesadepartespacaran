@@ -1,227 +1,216 @@
-<h1 class="h3 mb-4 text-gray-800">Ver Expedientes</h1>
+<h1 class="h3 mb-4 text-gray-800">
+    <i class="fas fa-globe text-primary"></i> Directorio de Expedientes Públicos
+</h1>
 
 <div class="container-fluid">
-
-    <!-- FILTROS -->
-    <div class="card shadow-sm mb-3">
-        <div class="card-body row g-2">
-            <div class="col-md-3">
-                <input type="text" id="buscadorExp" class="form-control" placeholder="Buscar expediente...">
-            </div>
-            <div class="col-md-3">
-                <select id="filtroTipo" class="form-select">
-                    <option value="">Tipo</option>
-                    <option value="privado">Privado</option>
-                    <option value="compartido">Compartido</option>
-                    <option value="otros">De otros</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select id="filtroEstado" class="form-select">
-                    <option value="">Estado</option>
-                    <option value="activo">Activo</option>
-                    <option value="cerrado">Cerrado</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- TABLA DE EXPEDIENTES -->
-    <div class="card shadow-sm">
+    <div class="card shadow mb-4 border-left-info">
         <div class="card-body">
+            <p class="text-muted">Aquí puedes consultar los expedientes de acceso público de la institución. Si requieres subir documentación, solicita acceso de edición al responsable.</p>
+            
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="tablaExpedientes">
-                    <thead class="table-dark">
+                <table class="table table-hover" id="tabla-publicos">
+                    <thead class="thead-light">
                         <tr>
-                            <th>#</th>
                             <th>Código</th>
-                            <th>Asunto</th>
-                            <th>Tipo</th>
+                            <th>Asunto / Descripción</th>
                             <th>Responsable</th>
-                            <th>Última actualización</th>
                             <th>Estado</th>
+                            <th>Fecha</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Datos cargados dinámicamente -->
-                        <tr>
-                            <td>001</td>
-                            <td>EXP-2026-001</td>
-                            <td>Informe Legal</td>
-                            <td>Privado</td>
-                            <td>Juan Pérez</td>
-                            <td>20/03/2026</td>
-                            <td><span class="badge bg-success">Activo</span></td>
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalVerExp">
-                                    <i class="bi bi-eye"></i> Ver
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalVerExp" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Detalles del Expediente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Código:</strong> EXP-2026-001</p>
-                <p><strong>Asunto:</strong> Informe Legal</p>
-                <p><strong>Tipo:</strong> Privado</p>
-                <p><strong>Responsable:</strong> Juan Pérez</p>
-                <p><strong>Estado:</strong> <span class="badge bg-success">Activo</span></p>
+<div class="modal fade" id="modalDetallesReadonly" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-search"></i> Explorador de Expediente</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
-            <div class="col-md-6">
-                <p><strong>Descripción:</strong></p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs bg-light pl-3 pt-2" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active font-weight-bold" data-toggle="tab" href="#tab-docs-ro" role="tab">
+                            <i class="fas fa-file-pdf"></i> Documentos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link font-weight-bold" data-toggle="tab" href="#tab-hist-ro" role="tab">
+                            <i class="fas fa-shoe-prints"></i> Seguimiento
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-4">
+                    <div class="tab-pane fade show active" id="tab-docs-ro" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm" id="tabla-versiones-ro">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Documento</th>
+                                        <th>Versión</th>
+                                        <th>Archivo Físico</th>
+                                        <th>Comentario de Versión</th>
+                                        <th>Subido Por</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-hist-ro" role="tabpanel">
+                        <div id="timeline-expediente-ro" class="pl-2"></div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <hr>
-
-        <h6>Participantes</h6>
-        <ul>
-            <li>Juan Pérez</li>
-            <li>María López</li>
-        </ul>
-
-        <hr>
-
-        <h6>Documentos Adjuntos</h6>
-        <ul>
-            <li><a href="#" target="_blank"><i class="bi bi-file-earmark-text"></i> Informe.pdf</a></li>
-            <li><a href="#" target="_blank"><i class="bi bi-file-earmark-text"></i> Resumen.pdf</a></li>
-        </ul>
-
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-
     </div>
-  </div>
 </div>
 
-<div class="modal fade" id="modalVerExp" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-
-      <div class="modal-header">
-        <h5 class="modal-title">Detalles del Expediente</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Información principal del expediente -->
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <p><strong>Código:</strong> EXP-2026-001</p>
-                <p><strong>Asunto:</strong> Informe Legal</p>
-                <p><strong>Tipo:</strong> Privado</p>
-                <p><strong>Responsable:</strong> Juan Pérez</p>
-                <p><strong>Estado:</strong> <span class="badge bg-success">Activo</span></p>
+<div class="modal fade" id="modalSolicitarAcceso" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-key"></i> Solicitar Permiso de Edición</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
             </div>
-            <div class="col-md-6">
-                <p><strong>Descripción:</strong></p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-            </div>
+            <form id="formSolicitarAcceso">
+                <div class="modal-body">
+                    <input type="hidden" name="id_expediente" id="sol_id_expediente">
+                    <div class="alert alert-info small">
+                        El responsable evaluará tu solicitud. Una vez aprobada, este expediente aparecerá en tu pestaña de "Mis Expedientes".
+                    </div>
+                    <div class="form-group">
+                        <label class="font-weight-bold">Motivo de la Solicitud</label>
+                        <textarea name="mensaje" class="form-control" rows="3" placeholder="Ej: Necesito subir la resolución firmada y los anexos correspondientes..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning text-dark"><i class="fas fa-paper-plane"></i> Enviar Solicitud</button>
+                </div>
+            </form>
         </div>
-
-        <hr>
-
-        <!-- Participantes -->
-        <h6>Participantes</h6>
-        <ul>
-            <li>Juan Pérez</li>
-            <li>María López</li>
-        </ul>
-
-        <hr>
-
-        <!-- Historial de actualizaciones -->
-        <h6>Historial de Actualizaciones</h6>
-        <div class="accordion" id="historialExpediente">
-
-          <!-- Ejemplo de actualización -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="heading1">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
-                20/03/2026 - Juan Pérez
-              </button>
-            </h2>
-            <div id="collapse1" class="accordion-collapse collapse" data-bs-parent="#historialExpediente">
-              <div class="accordion-body">
-                <p><strong>Notas:</strong> Documento inicial del expediente.</p>
-                <ul>
-                  <li><a href="#" target="_blank"><i class="bi bi-file-earmark-text"></i> Informe.pdf</a></li>
-                  <li><a href="#" target="_blank"><i class="bi bi-file-earmark-text"></i> Resumen.pdf</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Otra actualización -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="heading2">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
-                22/03/2026 - María López
-              </button>
-            </h2>
-            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#historialExpediente">
-              <div class="accordion-body">
-                <p><strong>Notas:</strong> Se agregaron documentos complementarios.</p>
-                <ul>
-                  <li><a href="#" target="_blank"><i class="bi bi-file-earmark-text"></i> Anexo1.pdf</a></li>
-                  <li><a href="#" target="_blank"><i class="bi bi-file-earmark-text"></i> Anexo2.pdf</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-
     </div>
-  </div>
 </div>
+
 <script>
-const buscadorExp = document.getElementById("buscadorExp");
-const filtroTipo = document.getElementById("filtroTipo");
-const filtroEstado = document.getElementById("filtroEstado");
+document.addEventListener("DOMContentLoaded", () => {
+    cargarPublicos();
+});
 
-function filtrarExpedientes() {
-    const texto = buscadorExp.value.toLowerCase();
-    const tipo = filtroTipo.value.toLowerCase();
-    const estado = filtroEstado.value.toLowerCase();
+function cargarPublicos() {
+    fetch('../../ajax/ajax_expedientes.php?accion=listar_publicos')
+    .then(res => res.json())
+    .then(response => {
+        const tbody = document.querySelector("#tabla-publicos tbody");
+        tbody.innerHTML = "";
+        
+        if (!response.data || response.data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No hay expedientes públicos disponibles.</td></tr>`;
+            return;
+        }
 
-    document.querySelectorAll("#tablaExpedientes tbody tr").forEach(tr => {
-        const contenido = tr.innerText.toLowerCase();
-        let mostrar = contenido.includes(texto) &&
-                     (tipo === "" || contenido.includes(tipo)) &&
-                     (estado === "" || contenido.includes(estado));
-        tr.style.display = mostrar ? "" : "none";
+        response.data.forEach(exp => {
+            let badgeEstado = 'success';
+            if (exp.estado === 'en_proceso') badgeEstado = 'warning';
+            if (exp.estado === 'finalizado') badgeEstado = 'info';
+            if (exp.estado === 'archivado') badgeEstado = 'dark';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${exp.codigo_expediente}</strong></td>
+                    <td>${exp.asunto}</td>
+                    <td class="small text-muted"><i class="fas fa-user-tie"></i> ${exp.responsable}</td>
+                    <td><span class="badge badge-${badgeEstado}">${exp.estado.toUpperCase()}</span></td>
+                    <td class="small">${exp.fecha_creacion}</td>
+                    <td class="text-center">
+                        <div class="btn-group">
+                            <button class="btn btn-info btn-sm" onclick="verDetallesPublicos(${exp.id_expediente})" title="Explorar Archivos">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm text-dark" onclick="abrirSolicitud(${exp.id_expediente})" title="Solicitar Acceso">
+                                <i class="fas fa-hand-paper"></i> Pedir Acceso
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
     });
 }
 
-buscadorExp.addEventListener("keyup", filtrarExpedientes);
-filtroTipo.addEventListener("change", filtrarExpedientes);
-filtroEstado.addEventListener("change", filtrarExpedientes);
+function verDetallesPublicos(id_expediente) {
+    // Reutilizamos el endpoint de detalles que ya creamos antes
+    fetch(`../../ajax/ajax_expedientes.php?accion=obtener_detalles&id=${id_expediente}`)
+    .then(res => res.json())
+    .then(data => {
+        const tbodyV = document.querySelector("#tabla-versiones-ro tbody");
+        tbodyV.innerHTML = "";
+
+        if (data.versiones.length === 0) {
+            tbodyV.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No se han subido archivos a este expediente.</td></tr>`;
+        } else {
+            data.versiones.forEach(v => {
+                tbodyV.innerHTML += `
+                    <tr>
+                        <td class="align-middle text-primary font-weight-bold">${v.nombre_documento}</td>
+                        <td class="align-middle text-center"><span class="badge badge-dark">V${v.version}</span></td>
+                        <td class="align-middle text-center"><a href="../../${v.ruta_archivo}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i> Ver</a></td>
+                        <td class="align-middle"><em>${v.comentario}</em></td>
+                        <td class="align-middle small">${v.subido_por}</td>
+                        <td class="align-middle small">${v.fecha_subida}</td>
+                    </tr>`;
+            });
+        }
+
+        const timeline = document.getElementById('timeline-expediente-ro');
+        timeline.innerHTML = "";
+        data.historial.forEach(h => {
+            let color = h.tipo_evento === 'creado' ? 'success' : 'primary';
+            timeline.innerHTML += `
+                <div class="border-left pl-3 pb-3 position-relative border-${color}">
+                    <div class="position-absolute bg-${color}" style="left:-6px; top:0; width:11px; height:11px; border-radius:50%"></div>
+                    <small class="text-muted">${h.fecha} - <b>${h.nombres_usuario}</b></small><br>
+                    <strong class="text-${color} text-uppercase">${h.tipo_evento.replace('_', ' ')}</strong><br>
+                    <span>${h.observacion}</span>
+                </div>`;
+        });
+
+        $('#modalDetallesReadonly').modal('show');
+    });
+}
+
+function abrirSolicitud(id_expediente) {
+    document.getElementById('sol_id_expediente').value = id_expediente;
+    document.getElementById('formSolicitarAcceso').reset();
+    $('#modalSolicitarAcceso').modal('show');
+}
+
+document.getElementById('formSolicitarAcceso').onsubmit = function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+
+    fetch('../../ajax/ajax_expedientes.php?accion=enviar_solicitud_acceso', {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        if (data.status === "ok") {
+            Swal.fire('Enviado', data.mensaje, 'success');
+            $('#modalSolicitarAcceso').modal('hide');
+        } else {
+            Swal.fire('Aviso', data.mensaje, 'warning');
+        }
+    });
+};
 </script>

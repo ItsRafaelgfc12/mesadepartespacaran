@@ -81,10 +81,11 @@ $vista = $_GET["vista"] ?? "inicio";
                         <h6 class="collapse-header">Tramites disponibles:</h6>
                         <a class="collapse-item" href="home.php?vista=fut/crear">FUT</a>
                         <a class="collapse-item" href="home.php?vista=fut/ver">Ver mis futs</a>
-                        <a class="collapse-item" href="home.php?vista=requerimiento/crear">Requerimiento</a>
+                        <!--<a class="collapse-item" href="home.php?vista=requerimiento/crear">Requerimiento</a>-->
                         <h6 class="collapse-header">Documentos:</h6>
                         <a class="collapse-item" href="home.php?vista=documentos/pendiente">Pendientes</a>
                         <a class="collapse-item" href="home.php?vista=documentos/enviar">Enviar</a>
+                        <a class="collapse-item" href="home.php?vista=documentos/historial">Historial</a>
                     </div>
                 </div>
             </li>

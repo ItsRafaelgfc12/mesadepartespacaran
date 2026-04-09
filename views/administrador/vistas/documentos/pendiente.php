@@ -115,7 +115,6 @@
                             <option value="area">Área / Oficina</option>
                             <option value="cargo">Cargo Específico</option>
                             <option value="usuario">Usuario Directo</option>
-                            <option value="programa">Programa de estudios</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -284,13 +283,13 @@ function cargarAtendidos() {
     .then(response => {
         const tbody = document.querySelector("#tabla-atendidos tbody");
         tbody.innerHTML = "";
+        
         if (!response.data || response.data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No tienes documentos atendidos.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No tienes documentos asignados.</td></tr>`;
             return;
         }
-        let cargosDebug = String(response.debug?.buscando_cargos_ids || "0");
+
         response.data.forEach(doc => {
-            let btnFut = cargosDebug.split(',').includes("6") ? `<a href="../../pdf/generar_pdf_fut.php?id=${doc.id_documento}" target="_blank" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i></a>` : '';
             let url_ver = doc.ultimo_archivo ? `../../${doc.ultimo_archivo}` : `../../pdf/generar_pdf_fut.php?id=${doc.id_documento}`;
 
             tbody.innerHTML += `
@@ -299,18 +298,58 @@ function cargarAtendidos() {
                     <td>${doc.asunto}</td>
                     <td>${doc.fecha_emision}</td>
                     <td>${doc.remitente}</td>
-                    <td><span class="badge badge-secondary">${doc.tipo_destino}</span></td>
+                    <td>
+                        <span class="badge badge-info">${doc.tipo_destino.toUpperCase()}</span><br>
+                        <small class="font-weight-bold">${doc.via_exacta}</small>
+                    </td>
                     <td class="text-center">
                         <div class="btn-group">
-                            <a href="${url_ver}" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-                            ${btnFut}
+                            <a href="${url_ver}" target="_blank" class="btn btn-info btn-sm" title="Ver"><i class="fas fa-eye"></i></a>
+                            
+                            <button class="btn btn-outline-secondary btn-sm" onclick="liberarDocumento(${doc.id_documento}, ${doc.id_derivacion})" title="Liberar para el Área">
+                                <i class="fas fa-undo"></i>
+                            </button>
+
                             <button class="btn btn-warning btn-sm" onclick="verSeguimiento(${doc.id_documento})"><i class="fas fa-history"></i></button>
-                            <button class="btn btn-primary btn-sm" onclick="abrirDerivar(${doc.id_documento}, ${doc.id_derivacion})"><i class="fas fa-share"></i></button>
-                            <button class="btn btn-dark btn-sm" onclick="abrirArchivar(${doc.id_documento})"><i class="fas fa-archive"></i></button>
+                            <button class="btn btn-primary btn-sm" onclick="abrirDerivar(${doc.id_documento}, ${doc.id_derivacion})" title="Derivar"><i class="fas fa-share"></i></button>
+                            <button class="btn btn-dark btn-sm" onclick="abrirArchivar(${doc.id_documento})" title="Archivar"><i class="fas fa-archive"></i></button>
                         </div>
                     </td>
                 </tr>`;
         });
+    });
+}
+
+function liberarDocumento(idDoc, idDer) {
+    Swal.fire({
+        title: '¿Liberar documento?',
+        text: "El documento volverá a estar disponible para que cualquier compañero del área pueda tomarlo.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, liberar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const formData = new FormData();
+            formData.append('id_documento', idDoc);
+            formData.append('id_derivacion', idDer);
+
+            fetch('../../ajax/ajax_gestion_documentos.php?accion=liberar_documento', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "ok") {
+                    Swal.fire('Liberado', data.mensaje, 'success');
+                    cargarAtendidos();
+                    cargarRecibidos();
+                } else {
+                    Swal.fire('Error', data.mensaje, 'error');
+                }
+            });
+        }
     });
 }
 
@@ -497,4 +536,46 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 });
+function cargarRecibidos() {
+    fetch('../../ajax/ajax_gestion_documentos.php?accion=listar_recibidos')
+    .then(res => res.json())
+    .then(response => {
+        const tbody = document.querySelector("#tabla-recibidos tbody");
+        const contador = document.getElementById('count-recibidos');
+        tbody.innerHTML = "";
+        
+        if (response.data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No hay documentos pendientes.</td></tr>`;
+            contador.innerText = "0";
+            return;
+        }
+
+        contador.innerText = response.data.length;
+        response.data.forEach(doc => {
+            let url_ver = doc.ultimo_archivo ? `../../${doc.ultimo_archivo}` : `../../pdf/generar_pdf_fut.php?id=${doc.id_documento}`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${doc.codigo_documento}</strong></td>
+                    <td>${doc.asunto}</td>
+                    <td>${doc.fecha_emision}</td>
+                    <td>${doc.remitente}</td>
+                    <td>
+                        <span class="badge badge-info">${doc.tipo_destino.toUpperCase()}</span><br>
+                        <small class="font-weight-bold text-dark">${doc.via_exacta}</small>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group">
+                            <a href="${url_ver}" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
+                            <button class="btn btn-warning btn-sm" onclick="verSeguimiento(${doc.id_documento})"><i class="fas fa-history"></i></button>
+                            <button class="btn btn-success btn-sm" onclick="abrirAtender(${doc.id_documento}, ${doc.id_derivacion})" title="Tomar y Atender">
+                                <i class="fas fa-hand-holding"></i>
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="abrirDerivar(${doc.id_documento}, ${doc.id_derivacion})"><i class="fas fa-share"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    });
+}
 </script>

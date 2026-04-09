@@ -12,10 +12,18 @@
 
                 <div class="row">
                     <div class="col-md-4 form-group mt-3">
-                        <label>Código / Nro de Documento</label>
-                        <input type="text" name="codigo_documento" class="form-control" placeholder="Ej: OFICIO-001-2026-AREA" required>
+                        <label>Tipo de Documento</label>
+                        <select name="id_tipo" id="id_tipo_doc" class="form-control" required>
+                            <option value="">Cargando tipos...</option>
+                        </select>
                     </div>
-                    <div class="col-md-8 form-group mt-3">
+
+                    <div class="col-md-4 form-group mt-3">
+                        <label>Código / Nro de Documento</label>
+                        <input type="text" name="codigo_documento" class="form-control" placeholder="Ej: OFICIO-001-2026" required>
+                    </div>
+                    
+                    <div class="col-md-4 form-group mt-3">
                         <label>Asunto</label>
                         <input type="text" name="asunto" class="form-control" required>
                     </div>
@@ -27,8 +35,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Archivo Principal (PDF)</label>
-                    <input type="file" name="url_doc" class="form-control-file" accept=".pdf" required>
+                    <label>Archivo Principal</label>
+                    <input type="file" name="url_doc" class="form-control-file" accept=".pdf, .zip, .rar, .7z" required>
+                    <small class="text-muted">Formatos permitidos: PDF, ZIP, RAR o 7Z.</small>
                 </div>
 
                 <hr>
@@ -69,6 +78,29 @@
 </div>
 
 <script>
+// Función para cargar los tipos de documento (Excepto FUT que es ID 1)
+function cargarTiposDocumento() {
+    const select = document.getElementById('id_tipo_doc');
+    
+    // Usaremos un nuevo endpoint en utilitarios que debemos crear
+    fetch('../../ajax/ajax_utilitarios.php?accion=listar_tipos_doc_internos')
+    .then(res => res.json())
+    .then(data => {
+        select.innerHTML = '<option value="">Seleccione tipo...</option>';
+        data.forEach(tipo => {
+            select.innerHTML += `<option value="${tipo.id_tipo}">${tipo.nombre}</option>`;
+        });
+    })
+    .catch(err => {
+        select.innerHTML = '<option value="">Error al cargar</option>';
+    });
+}
+
+// Ejecutar al cargar la página
+document.addEventListener("DOMContentLoaded", () => {
+    cargarTiposDocumento();
+});
+
 // Reutilizamos la lógica de carga dinámica que ya tenemos en utilitarios
 function cargarDestinosInternos(tipo) {
     const select = document.getElementById('id_destino');

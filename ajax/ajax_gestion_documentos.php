@@ -38,6 +38,12 @@ switch ($accion) {
     case 'registrar_documento_interno':
         echo json_encode($controlador->registrarDocumentoInterno($_POST, $_FILES));
         break;
+    case 'listar_historial_enviados':
+        echo json_encode($controlador->listarHistorialEnviados());
+        break;
+    case 'liberar_documento':
+        echo json_encode($controlador->liberarDocumento($_POST));
+        break;
     default:
         echo json_encode(["error" => "Acción no reconocida"]);
         break;
