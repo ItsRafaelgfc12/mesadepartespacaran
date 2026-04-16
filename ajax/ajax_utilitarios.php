@@ -60,4 +60,31 @@ switch ($accion) {
     default:
         echo json_encode(["error" => "Acción no reconocida"]);
         break;
+        case 'buscar_usuarios_avanzado':
+        global $conn;
+        
+        $id_area = !empty($_GET['area']) ? (int)$_GET['area'] : 0;
+        $id_cargo = !empty($_GET['cargo']) ? (int)$_GET['cargo'] : 0;
+        $id_programa = !empty($_GET['programa']) ? (int)$_GET['programa'] : 0;
+
+        $sql = "SELECT DISTINCT u.id_usuario, CONCAT(u.nombres_usuario, ' ', u.apellidos_usuario) as nombres 
+                FROM usuario u
+                LEFT JOIN usuario_cargo uc ON u.id_usuario = uc.id_usuario
+                LEFT JOIN cargo c ON uc.id_cargo = c.id_cargo
+                LEFT JOIN usuario_programa_estudio up ON u.id_usuario = up.id_usuario
+                WHERE u.id_estado = 1"; // Solo usuarios activos
+
+        if ($id_area > 0)     $sql .= " AND c.id_area = $id_area";
+        if ($id_cargo > 0)    $sql .= " AND uc.id_cargo = $id_cargo";
+        if ($id_programa > 0) $sql .= " AND up.id_programa_estudio = $id_programa";
+
+        $sql .= " ORDER BY u.nombres_usuario ASC";
+
+        $res = $conn->query($sql);
+        $data = [];
+        while($row = $res->fetch_assoc()) {
+            $data[] = $row;
+        }
+        echo json_encode($data);
+        break;
 }

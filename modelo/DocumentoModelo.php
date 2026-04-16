@@ -133,45 +133,47 @@ class DocumentoModelo {
                 if (!file_exists($dir)) mkdir($dir, 0777, true);
 
                 $ext = strtolower(pathinfo($archivo_final['name'], PATHINFO_EXTENSION));
-                $nombre = "FINAL_" . $id_doc . "_" . time() . "." . $ext;
+                $nombre = "FINAL_" . $id_doc . "_" . time() . "_" . $id_user_sesion . "." . $ext;
                 if (move_uploaded_file($archivo_final['tmp_name'], $dir . $nombre)) {
                     $ruta_bd = "uploads/finales/" . $nombre;
                 }
             }
 
+            // 1. Guardamos el archivo asociado ÚNICAMENTE a este usuario
             $stmt1 = $conn->prepare("INSERT INTO documento_archivo (id_documento, fecha_archivado, mensaje, id_usuario, ruta_archivo_final) VALUES (?, NOW(), ?, ?, ?)");
             $stmt1->bind_param("isis", $id_doc, $mensaje, $id_user_sesion, $ruta_bd);
             $stmt1->execute();
 
-            $conn->query("UPDATE documento SET estado = 'archivado' WHERE id_documento = $id_doc");
-            $conn->query("UPDATE documento_derivacion SET estado = 'finalizado' WHERE id_documento = $id_doc AND estado != 'finalizado'");
+            // 🔥 2. EL ARREGLO: Finalizamos SOLO la derivación de este usuario específico
+            $stmtDer = $conn->prepare("UPDATE documento_derivacion SET estado = 'finalizado' WHERE id_documento = ? AND id_usuario_receptor = ?");
+            $stmtDer->bind_param("ii", $id_doc, $id_user_sesion);
+            $stmtDer->execute();
 
+            // 3. Verificamos si TODOS los destinatarios ya terminaron. 
+            // Si nadie falta, cerramos el documento maestro.
+            $res = $conn->query("SELECT COUNT(*) as pendientes FROM documento_derivacion WHERE id_documento = $id_doc AND estado != 'finalizado'");
+            $row = $res->fetch_assoc();
+            if ($row['pendientes'] == 0) {
+                $conn->query("UPDATE documento SET estado = 'archivado' WHERE id_documento = $id_doc");
+            }
+
+            // 4. Guardamos en el historial quién archivó su parte
             $stmtHist = $conn->prepare("INSERT INTO documento_historial (id_documento, id_usuario, tipo_evento, observacion) VALUES (?, ?, 'archivado', ?)");
-            $obs = "ARCHIVO FINAL: " . $mensaje;
+            $obs = "ARCHIVO INDIVIDUAL: " . $mensaje;
             $stmtHist->bind_param("iis", $id_doc, $id_user_sesion, $obs);
             $stmtHist->execute();
 
             $conn->commit();
-            return ["status" => "ok", "mensaje" => "Documento archivado."];
+            return ["status" => "ok", "mensaje" => "Documento archivado en tu bandeja correctamente."];
         } catch (Exception $e) {
             $conn->rollback();
             return ["status" => "error", "mensaje" => $e->getMessage()];
         }
     }
 
-    public function listarArchivados() {
+   public function listarAtendidos($id_usuario) {
         global $conn;
-        $sql = "SELECT d.id_documento, d.codigo_documento, d.asunto, a.fecha_archivado, a.mensaje, a.ruta_archivo_final,
-                       IFNULL(CONCAT(u.nombres_usuario, ' ', u.apellidos_usuario), 'Sistema') as archivado_por
-                FROM documento d
-                INNER JOIN documento_archivo a ON d.id_documento = a.id_documento
-                LEFT JOIN usuario u ON a.id_usuario = u.id_usuario
-                ORDER BY a.fecha_archivado DESC";
-        return $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
-    }
-
-    public function listarAtendidos($id_usuario) {
-        global $conn;
+        // Se quitó el bloqueo de (NOT IN documento_archivo) porque la derivación pasa a 'finalizado' automáticamente
         $sql = "SELECT d.id_documento, d.codigo_documento, d.asunto, d.fecha_emision, 
                        IFNULL(CONCAT(u.nombres_usuario, ' ', u.apellidos_usuario), 'Sistema') as remitente,
                        der.id_derivacion, der.tipo_destino,
@@ -189,8 +191,23 @@ class DocumentoModelo {
                 LEFT JOIN usuario u ON d.id_usuario_emisor = u.id_usuario
                 WHERE der.id_usuario_receptor = ? 
                 AND der.estado = 'atendido'
-                AND d.id_documento NOT IN (SELECT id_documento FROM documento_archivo)
                 ORDER BY der.fecha_envio DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id_usuario);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    // 🔥 Modificado para que reciba el id_usuario
+    public function listarArchivados($id_usuario) {
+        global $conn;
+        $sql = "SELECT d.id_documento, d.codigo_documento, d.asunto, a.fecha_archivado, a.mensaje, a.ruta_archivo_final,
+                       IFNULL(CONCAT(u.nombres_usuario, ' ', u.apellidos_usuario), 'Sistema') as archivado_por
+                FROM documento d
+                INNER JOIN documento_archivo a ON d.id_documento = a.id_documento
+                LEFT JOIN usuario u ON a.id_usuario = u.id_usuario
+                WHERE a.id_usuario = ? 
+                ORDER BY a.fecha_archivado DESC";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $id_usuario);
         $stmt->execute();
@@ -199,15 +216,32 @@ class DocumentoModelo {
 
     public function obtenerSeguimiento($id_doc) {
         global $conn;
-        $stmt = $conn->prepare("SELECT h.tipo_evento, h.observacion, h.fecha, u.nombres_usuario, a.ruta_archivo_final as archivo_historial
-                                FROM documento_historial h
-                                LEFT JOIN usuario u ON u.id_usuario = h.id_usuario
-                                LEFT JOIN documento_archivo a ON (h.id_documento = a.id_documento AND h.tipo_evento = 'archivado')
-                                WHERE h.id_documento = ? ORDER BY h.fecha ASC");
-        $stmt->bind_param("i", $id_doc);
-        $stmt->execute();
-        $hist = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        
+        // 1. Obtener Historial con el archivo exacto de CADA usuario
+        $sqlHist = "SELECT h.tipo_evento, h.observacion, h.fecha, u.nombres_usuario,
+                           /* Buscar si este usuario subió su RESPUESTA FINAL (Archivado) en este momento */
+                           (SELECT a.ruta_archivo_final FROM documento_archivo a 
+                            WHERE a.id_documento = h.id_documento 
+                              AND a.id_usuario = h.id_usuario 
+                              AND ABS(TIMESTAMPDIFF(SECOND, a.fecha_archivado, h.fecha)) < 15 
+                            LIMIT 1) as archivo_final,
+                           /* Buscar si este usuario subió un ANEXO al derivar en este momento */
+                           (SELECT da.ruta_archivo FROM documento_adjuntos da 
+                            WHERE da.id_documento = h.id_documento 
+                              AND da.tipo = 'anexo' 
+                              AND ABS(TIMESTAMPDIFF(SECOND, da.fecha_subida, h.fecha)) < 15 
+                            LIMIT 1) as archivo_anexo
+                    FROM documento_historial h
+                    LEFT JOIN usuario u ON u.id_usuario = h.id_usuario
+                    WHERE h.id_documento = ? 
+                    ORDER BY h.fecha ASC";
+        
+        $stmt1 = $conn->prepare($sqlHist);
+        $stmt1->bind_param("i", $id_doc);
+        $stmt1->execute();
+        $hist = $stmt1->get_result()->fetch_all(MYSQLI_ASSOC);
 
+        // 2. Mantener la consulta de derivaciones que ya tenías
         $stmt2 = $conn->prepare("SELECT d.tipo_destino, d.estado, d.fecha_envio,
                                     CASE 
                                         WHEN d.tipo_destino = 'usuario' THEN us.nombres_usuario
@@ -216,9 +250,7 @@ class DocumentoModelo {
                                         WHEN d.tipo_destino = 'rol' THEN r.rol
                                         WHEN d.tipo_destino = 'programa' THEN p.programa_estudio
                                         ELSE 'Desconocido'
-                                    END AS destino_nombre,
-                                    (SELECT ruta_archivo FROM documento_adjuntos WHERE id_documento = d.id_documento 
-                                     AND ABS(TIMESTAMPDIFF(SECOND, fecha_subida, d.fecha_envio)) < 10 LIMIT 1) as archivo_adjunto
+                                    END AS destino_nombre
                                  FROM documento_derivacion d
                                  LEFT JOIN usuario us ON (d.tipo_destino = 'usuario' AND d.id_destino = us.id_usuario)
                                  LEFT JOIN area ar ON (d.tipo_destino = 'area' AND d.id_destino = ar.id_area)
@@ -237,8 +269,6 @@ class DocumentoModelo {
         global $conn;
         $conn->begin_transaction();
         try {
-            // Nota: Si ya implementaste el select de tipo de documento en la vista, 
-            // puedes cambiar estas 3 líneas por: $id_tipo = $post['id_tipo'];
             $resTipo = $conn->query("SELECT id_tipo FROM tipo_documento WHERE id_tipo > 1 LIMIT 1");
             $rowTipo = $resTipo->fetch_assoc();
             $id_tipo = $rowTipo['id_tipo'];
@@ -249,14 +279,9 @@ class DocumentoModelo {
             $id_doc = $conn->insert_id;
 
             if (isset($files['url_doc']) && $files['url_doc']['error'] === UPLOAD_ERR_OK) {
-                // 1. Obtenemos la extensión en minúsculas
                 $ext = strtolower(pathinfo($files['url_doc']['name'], PATHINFO_EXTENSION));
-                
-                // 🔥 2. Filtro de seguridad: Solo permitimos estas extensiones
                 $permitidas = ['pdf', 'zip', 'rar', '7z'];
-                if (!in_array($ext, $permitidas)) {
-                    throw new Exception("Formato no permitido. Solo se aceptan archivos PDF, ZIP, RAR o 7Z.");
-                }
+                if (!in_array($ext, $permitidas)) throw new Exception("Formato no permitido.");
 
                 $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . "uploads" . DIRECTORY_SEPARATOR . "internos" . DIRECTORY_SEPARATOR;
                 if (!file_exists($dir)) mkdir($dir, 0777, true);
@@ -265,29 +290,56 @@ class DocumentoModelo {
                 
                 if (move_uploaded_file($files['url_doc']['tmp_name'], $dir . $nombre)) {
                     $ruta_bd = "uploads/internos/" . $nombre;
-                    
-                    // 🔥 3. Definimos dinámicamente si es PDF o Comprimido
                     $tipo_archivo = ($ext === 'pdf') ? 'pdf' : 'comprimido';
 
-                    // Modificamos el INSERT para usar la variable $tipo_archivo
                     $stmtAdj = $conn->prepare("INSERT INTO documento_adjuntos (id_documento, nombre, tipo, ruta_archivo, nombre_original, extension, peso) VALUES (?, ?, ?, ?, ?, ?, ?)");
                     $stmtAdj->bind_param("isssssi", $id_doc, $nombre, $tipo_archivo, $ruta_bd, $files['url_doc']['name'], $ext, $files['url_doc']['size']);
                     $stmtAdj->execute();
                 } else {
-                    throw new Exception("Error al mover el archivo al servidor. Verifique los permisos.");
+                    throw new Exception("Error al mover el archivo al servidor.");
                 }
             }
 
-            $stmtDer = $conn->prepare("INSERT INTO documento_derivacion (id_documento, tipo_destino, id_destino, estado, fecha_envio) VALUES (?, ?, ?, 'pendiente', NOW())");
-            $stmtDer->bind_param("isi", $id_doc, $post['tipo_envio'], $post['id_destino']);
-            $stmtDer->execute();
+            // ==============================================================
+            // 🔥 LÓGICA DE DERIVACIÓN: ÚNICA VS MÚLTIPLE
+            // ==============================================================
+            $modalidad = $post['modalidad_envio'] ?? 'unica';
+            $enviados_count = 0;
+
+            if ($modalidad === 'multiple') {
+                $destinos = $post['destinatarios_multiples'] ?? [];
+                
+                $stmtDerMult = $conn->prepare("INSERT INTO documento_derivacion (id_documento, tipo_destino, id_destino, estado, fecha_envio) VALUES (?, 'usuario', ?, 'pendiente', NOW())");
+                
+                foreach ($destinos as $id_destinatario_individual) {
+                    // FILTRO ANTI-BUCLE: Si el usuario se seleccionó a sí mismo, lo saltamos.
+                    if ($id_destinatario_individual == $id_emisor) continue;
+
+                    $stmtDerMult->bind_param("ii", $id_doc, $id_destinatario_individual);
+                    $stmtDerMult->execute();
+                    $enviados_count++;
+                }
+
+                if ($enviados_count === 0) {
+                    throw new Exception("No se generó ninguna derivación. Asegúrese de no enviarse el documento a usted mismo.");
+                }
+
+            } else {
+                // Modo Atención Única Clásica
+                if ($post['tipo_envio'] == 'usuario' && $post['id_destino'] == $id_emisor) {
+                    throw new Exception("No puedes enviarte un documento de atención única a ti mismo.");
+                }
+                $stmtDer = $conn->prepare("INSERT INTO documento_derivacion (id_documento, tipo_destino, id_destino, estado, fecha_envio) VALUES (?, ?, ?, 'pendiente', NOW())");
+                $stmtDer->bind_param("isi", $id_doc, $post['tipo_envio'], $post['id_destino']);
+                $stmtDer->execute();
+            }
 
             $stmtHist = $conn->prepare("INSERT INTO documento_historial (id_documento, id_usuario, tipo_evento, observacion) VALUES (?, ?, 'creado', 'Doc interno enviado')");
             $stmtHist->bind_param("ii", $id_doc, $id_emisor);
             $stmtHist->execute();
 
             $conn->commit();
-            return ["status" => "ok", "mensaje" => "Documento enviado."];
+            return ["status" => "ok", "mensaje" => "Documento registrado y enviado correctamente."];
         } catch (Exception $e) {
             $conn->rollback();
             return ["status" => "error", "mensaje" => $e->getMessage()];

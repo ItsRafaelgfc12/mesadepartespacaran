@@ -18,7 +18,7 @@ class FutModelo {
         $descripcion = $_POST['descripcion'];
 
         $lugar = "Pacarán";
-        $id_area_origen = 12; //  área usuaria
+        $id_area_origen = 9; //  área usuaria
 
         //  OBTENER ID TIPO FUT
         $stmtTipo = $conn->prepare("SELECT id_tipo FROM tipo_documento WHERE nombre = 'FUT' LIMIT 1");
