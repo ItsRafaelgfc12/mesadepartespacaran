@@ -1,26 +1,40 @@
 <?php
-require_once __DIR__ . "/../librerias/conexion.php";
+require_once __DIR__ . "/../controlador/UsuarioControlador.php";
+header('Content-Type: application/json');
 
-session_start();
+$controlador = new UsuarioControlador();
+$accion = $_GET['accion'] ?? '';
 
-global $conn;
+switch ($accion) {
+    // 1. Exclusivo para rellenar el formulario FUT
+    case 'DatosPersonalesFut':
+        echo json_encode($controlador->obtenerDatosPersonalesFut());
+        break;
 
-$id = $_SESSION['id_usuario'];
+    // 2. Exclusivo para la tabla del Administrador
+    case 'ListarUsuarios':
+        echo json_encode($controlador->listarUsuariosAdmin());
+        break;
 
-$stmt = $conn->prepare("SELECT 
-    nombres_usuario,
-    apellidos_usuario,
-    tipo_documento,
-    numero_documento,
-    direccion_usuario,
-    celular_usuario,
-    email_per
-FROM usuario WHERE id_usuario = ?");
+    // Para Registrar / Editar Usuario
+    case 'RegistrarUsuario':
+        echo json_encode($controlador->registrarUsuario($_POST));
+        break;
+    
+    case 'ObtenerOpciones':
+        echo json_encode($controlador->obtenerOpciones());
+        break;
 
-$stmt->bind_param("i", $id);
-$stmt->execute();
+    case 'ObtenerUsuario':
+        echo json_encode($controlador->obtenerUsuario($_GET['id']));
+        break;
 
-$result = $stmt->get_result();
-$data = $result->fetch_assoc();
+    case 'EliminarUsuario':
+        echo json_encode($controlador->eliminarUsuario($_POST['id_usuario']));
+        break;
 
-echo json_encode($data);
+    default:
+        echo json_encode(["status" => "error", "mensaje" => "Acción no reconocida."]);
+        break;
+}
+?>

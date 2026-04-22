@@ -119,7 +119,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     cargarTiposDocumento();
-    cargarFiltrosMultiple(); // Carga las listas de Áreas, Cargos y Programas
+    cargarFiltrosMultiple();
 });
 
 function cargarTiposDocumento() {
@@ -143,7 +143,7 @@ function cargarDestinosInternos(tipo) {
     });
 }
 
-// --- LOGICA DE ATENCIÓN MÚLTIPLE ---
+
 function cambiarModalidad(modo) {
     const pUnica = document.getElementById('panel_unica');
     const pMultiple = document.getElementById('panel_multiple');

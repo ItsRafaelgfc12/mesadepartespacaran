@@ -77,7 +77,6 @@
 </div>
 
 <script>
-// 1. Mostrar vista previa de la imagen
 document.querySelector('input[name="imagen"]').onchange = evt => {
     const [file] = evt.target.files;
     if (file) {
@@ -86,7 +85,6 @@ document.querySelector('input[name="imagen"]').onchange = evt => {
     }
 }
 
-// 2. Cargar Select dependiente (Roles, Áreas, etc)
 function cargarDestinosPlantilla(selectElement) {
     const tipo = selectElement.value;
     const divRef = document.getElementById('div_referencia');
@@ -102,7 +100,6 @@ function cargarDestinosPlantilla(selectElement) {
     divRef.style.display = 'block';
     selectRef.required = true;
 
-    // Usamos tu AJAX de utilitarios que ya debe existir de expedientes
     fetch(`../../ajax/ajax_utilitarios.php?accion=listar_destinos&tipo=${tipo}`)
     .then(res => res.json())
     .then(data => {
@@ -114,7 +111,6 @@ function cargarDestinosPlantilla(selectElement) {
     .catch(err => console.error("Error cargando destinos:", err));
 }
 
-// 3. Subir Plantilla (Con la mejora de los 2 botones)
 document.getElementById('formSubirPlantilla').onsubmit = function(e) {
     e.preventDefault();
     let btn = document.getElementById('btnSubir');
@@ -133,7 +129,6 @@ document.getElementById('formSubirPlantilla').onsubmit = function(e) {
         btn.innerHTML = textoOriginal;
 
         if (data.status === "ok") {
-            // 🔥 AQUÍ ESTÁ LA MEJORA DEL SWEET ALERT
             Swal.fire({
                 title: '¡Plantilla Subida!',
                 text: data.mensaje,
@@ -146,9 +141,8 @@ document.getElementById('formSubirPlantilla').onsubmit = function(e) {
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'index.php?vista=plantillas/ver'; 
+                    window.location.href = 'home.php?vista=plantillas/ver'; 
                 } else {
-                    // Si elige "Subir otra", limpiamos el formulario y la foto
                     document.getElementById('formSubirPlantilla').reset();
                     document.getElementById('preview').style.display = 'none';
                     document.getElementById('div_referencia').style.display = 'none';

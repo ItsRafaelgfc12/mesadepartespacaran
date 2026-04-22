@@ -3,23 +3,16 @@
 </h1>
 
 <div class="container-fluid">
-
     <div class="card shadow mb-4">
         <div class="card-body">
-
             <h5 class="text-center font-weight-bold mb-4">
                 LISTADO DE FUT ENVIADOS
             </h5>
-
-            <!-- BUSCADOR -->
             <div class="mb-3">
                 <input type="text" id="buscadorFut" class="form-control" placeholder="Buscar FUT...">
             </div>
-
-            <!-- TABLA -->
             <div class="table-responsive">
                 <table class="table table-hover" id="tablaFuts">
-
                     <thead class="thead-dark">
                         <tr>
                             <th>#</th>
@@ -30,18 +23,12 @@
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
-
                     <tbody></tbody>
-
                 </table>
             </div>
-
         </div>
     </div>
-
 </div>
-
-<!-- MODAL -->
 <div class="modal fade" id="modalHistorial">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -52,19 +39,13 @@
                 </h5>
                 <button class="close text-white" data-dismiss="modal">&times;</button>
             </div>
-
             <div class="modal-body">
-
-                <!-- 🔥 TIMELINE -->
                 <div class="timeline" id="timelineHistorial"></div>
-
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- 🔥 CSS TIMELINE -->
 <style>
 .timeline {
     position: relative;
@@ -108,10 +89,6 @@
 </style>
 
 <script>
-
-// ==========================
-// 📦 CARGAR FUTS
-// ==========================
 function cargarFuts(){
 
     fetch('../../ajax/ajax_fut.php?accion=listar_mis_futs')
@@ -153,29 +130,23 @@ function cargarFuts(){
     });
 }
 
-// ==========================
-// 👁️ VER HISTORIAL (TIMELINE)
-// ==========================
+
 function verHistorial(id){
     fetch('../../ajax/ajax_fut.php?accion=historial&id=' + id)
     .then(res => res.json())
     .then(data => {
-        // Unificamos y pintamos
         pintarTimeline(data.historial, data.derivaciones);
         $('#modalHistorial').modal('show');
     });
 }
 
-// ==========================
-// 🎯 PINTAR TIMELINE UNIFICADO
-// ==========================
+
 function pintarTimeline(historial, derivaciones){
     let cont = document.getElementById("timelineHistorial");
     cont.innerHTML = "";
     
     let combinedTimeline = [];
 
-    // 1. Mapeamos Eventos del Historial
     historial.forEach(item => {
         let color = "secondary";
         if(item.tipo_evento === 'creado') color = "primary";
@@ -189,11 +160,10 @@ function pintarTimeline(historial, derivaciones){
             titulo: item.tipo_evento.toUpperCase(),
             descripcion: item.observacion ?? '',
             usuario: item.nombres_usuario ?? 'Sistema',
-            archivo: item.ruta_archivo_final // Archivo final si es 'archivado'
+            archivo: item.ruta_archivo_final
         });
     });
 
-    // 2. Mapeamos Derivaciones
     derivaciones.forEach(item => {
         combinedTimeline.push({
             fecha: item.fecha_envio,
@@ -201,16 +171,13 @@ function pintarTimeline(historial, derivaciones){
             titulo: "DERIVADO",
             descripcion: `${item.tipo_destino.toUpperCase()} → ${item.destino_nombre} <br> <span class="badge badge-secondary">${item.estado}</span>`,
             usuario: "Sistema",
-            archivo: item.ruta_anexo // Anexo de derivación si existe
+            archivo: item.ruta_anexo 
         });
     });
 
-    // 3. Ordenamos por fecha (Lo más nuevo arriba)
     combinedTimeline.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-    // 4. Renderizamos
     combinedTimeline.forEach(item => {
-        // Si hay archivo, preparamos el botón
         let btnArchivo = item.archivo 
             ? `<div class="btn-adjunto">
                 <a href="../../${item.archivo}" target="_blank" class="btn btn-outline-danger btn-sm">
@@ -234,9 +201,7 @@ function pintarTimeline(historial, derivaciones){
         `;
     });
 }
-// ==========================
-// 🎨 ESTADOS
-// ==========================
+
 function badgeEstado(estado){
 
     estado = estado.toLowerCase().trim();
@@ -265,9 +230,7 @@ function textoEstado(estado){
     }
 }
 
-// ==========================
-// 🔍 BUSCADOR + INIT
-// ==========================
+
 document.addEventListener("DOMContentLoaded", function(){
 
     cargarFuts();

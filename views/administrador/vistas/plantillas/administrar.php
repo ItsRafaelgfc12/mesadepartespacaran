@@ -3,7 +3,6 @@
 </h1>
 
 <div class="container-fluid">
-
     <div class="card shadow mb-4 border-left-primary">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
@@ -14,7 +13,7 @@
                     <input type="text" id="buscador" class="form-control form-control-sm" placeholder="Buscar por nombre, descripción o autor...">
                 </div>
                 <div>
-                    <a href="index.php?vista=plantillas/listar" class="btn btn-secondary btn-sm mr-2">
+                    <a href="home.php?vista=plantillas/ver" class="btn btn-secondary btn-sm mr-2">
                         <i class="fas fa-th-large"></i> Ver Galería
                     </a>
                     <a href="index.php?vista=plantillas/subir" class="btn btn-primary btn-sm">
@@ -55,12 +54,92 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalEditarPlantilla" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-edit"></i> Editar Plantilla</h5>
+                <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="formEditarPlantilla" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="id_plantilla" id="edit_id_plantilla">
+                    
+                    <div class="row">
+                        <div class="col-md-8 form-group">
+                            <label>Título</label>
+                            <input type="text" name="titulo" id="edit_titulo" class="form-control" required>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Estado</label>
+                            <select name="estado" id="edit_estado" class="form-control" required>
+                                <option value="activo">Activo (Visible)</option>
+                                <option value="inactivo">Inactivo (Oculto)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" id="edit_descripcion" class="form-control" rows="2" required></textarea>
+                    </div>
+
+                    <div class="row bg-light p-2 rounded mb-3 border">
+                        <div class="col-md-6 form-group mb-0">
+                            <label class="text-primary font-weight-bold">Permiso de Acceso</label>
+                            <select name="tipo_acceso" id="edit_tipo_acceso" class="form-control" onchange="cargarDestinosEditar(this)" required>
+                                <option value="publico">Público (Todos)</option>
+                                <option value="rol">Por Rol</option>
+                                <option value="area">Por Área</option>
+                                <option value="cargo">Por Cargo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group mb-0" id="div_referencia_edit" style="display:none;">
+                            <label class="text-primary font-weight-bold">Destino Específico</label>
+                            <select name="id_referencia" id="select_referencia_edit" class="form-control">
+                                </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Cambiar Imagen (Opcional)</label>
+                            <input type="file" name="imagen" id="edit_imagen" class="form-control-file border p-1 rounded" accept="image/*">
+                            <div class="text-center mt-2">
+                                <img id="preview_edit" src="#" alt="Portada actual" style="max-height: 120px; object-fit: contain;" class="border p-1 bg-light shadow-sm">
+                            </div>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Cambiar Archivo (Opcional)</label>
+                            <input type="file" name="archivo" id="edit_archivo" class="form-control-file border p-1 rounded" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf">
+                            <div class="mt-3">
+                                <strong>Archivo actual:</strong><br>
+                                <a id="link_archivo_edit" href="#" target="_blank" class="badge badge-success p-2 mt-1">
+                                    <i class="fas fa-file-download"></i> Ver / Descargar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning font-weight-bold" id="btnGuardarEdicion">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     cargarTablaPlantillas();
 });
 
-// 1. Cargar datos desde el Backend
+// 1. Cargar Tabla
 function cargarTablaPlantillas() {
     fetch('../../ajax/ajax_plantillas.php?accion=listar')
     .then(res => res.json())
@@ -74,33 +153,29 @@ function cargarTablaPlantillas() {
         }
 
         response.data.forEach(p => {
-            // Formatear Fecha
             let fechaFormat = p.fecha_creacion ? p.fecha_creacion.split(' ')[0] : '-';
-            
-            // Formatear Estado (Color de Badge)
             let badgeEstado = p.estado === 'activo' 
                 ? '<span class="badge badge-success p-2"><i class="fas fa-check-circle"></i> Activo</span>' 
                 : '<span class="badge badge-secondary p-2"><i class="fas fa-times-circle"></i> Inactivo</span>';
 
-            // Validar Permisos (Para mostrar/ocultar botones de Editar/Eliminar)
             let esPropietario = (p.id_usuario == response.id_usuario_actual);
-            let esAdmin = (response.id_rol_actual == 1); // 1 = Administrador
+            let esAdmin = (response.id_rol_actual == 1);
             
             let btnEditar = '';
             let btnEliminar = '';
 
+            // 🔥 AQUÍ CAMBIAMOS EL ENLACE POR UN BOTÓN QUE ABRE EL MODAL
             if (esPropietario || esAdmin) {
                 btnEditar = `
-                    <a href="index.php?vista=plantillas/editar&id=${p.id_plantilla}" class="btn btn-warning btn-sm shadow-sm" title="Editar">
+                    <button class="btn btn-warning btn-sm shadow-sm mr-1" title="Editar" onclick="abrirModalEditar(${p.id_plantilla})">
                         <i class="fas fa-edit"></i>
-                    </a>`;
+                    </button>`;
                 btnEliminar = `
                     <button class="btn btn-danger btn-sm shadow-sm" title="Eliminar" onclick="eliminarPlantilla(${p.id_plantilla})">
                         <i class="fas fa-trash"></i>
                     </button>`;
             }
 
-            // Construir Fila
             let fila = `
                 <tr>
                     <td class="font-weight-bold text-gray-600">#${p.id_plantilla}</td>
@@ -140,7 +215,7 @@ function cargarTablaPlantillas() {
     });
 }
 
-// 2. Buscador en Tiempo Real (Filtrado de JS)
+// 2. Buscador en Tiempo Real
 const buscador = document.getElementById("buscador");
 buscador.addEventListener("input", () => {
     const filtro = buscador.value.toLowerCase();
@@ -150,31 +225,26 @@ buscador.addEventListener("input", () => {
     });
 });
 
-// 3. Función Eliminar (Reutilizada)
+// 3. Eliminar
 function eliminarPlantilla(id) {
     Swal.fire({
         title: '¿Mover a la papelera?',
-        text: "La plantilla pasará a estado inactivo y no se verá en el directorio.",
+        text: "La plantilla pasará a estado inactivo.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: 'Sí, eliminar'
     }).then((result) => {
         if (result.isConfirmed) {
             let fd = new FormData();
             fd.append('id', id);
-
-            fetch('../../ajax/ajax_plantillas.php?accion=eliminar', {
-                method: 'POST',
-                body: fd
-            })
+            fetch('../../ajax/ajax_plantillas.php?accion=eliminar', { method: 'POST', body: fd })
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'ok') {
                     Swal.fire('Eliminada', data.mensaje, 'success');
-                    cargarTablaPlantillas(); // Recargar la tabla
+                    cargarTablaPlantillas();
                 } else {
                     Swal.fire('Error', data.mensaje, 'error');
                 }
@@ -182,4 +252,110 @@ function eliminarPlantilla(id) {
         }
     });
 }
+
+// ==========================================
+// LÓGICA DEL MODAL DE EDICIÓN
+// ==========================================
+
+// 4. Abrir Modal y cargar datos
+function abrirModalEditar(id_plantilla) {
+    // Limpiamos el formulario antes de abrirlo
+    document.getElementById('formEditarPlantilla').reset();
+    
+    fetch(`../../ajax/ajax_plantillas.php?accion=obtener&id=${id_plantilla}`)
+    .then(res => res.json())
+    .then(response => {
+        if (response.status === 'ok') {
+            const data = response.data;
+            
+            // Llenar campos de texto
+            document.getElementById('edit_id_plantilla').value = data.id_plantilla;
+            document.getElementById('edit_titulo').value = data.titulo;
+            document.getElementById('edit_descripcion').value = data.descripcion;
+            document.getElementById('edit_estado').value = data.estado;
+            document.getElementById('edit_tipo_acceso').value = data.tipo_acceso;
+            
+            // Llenar recursos visuales
+            document.getElementById('preview_edit').src = `../../${data.url_imagen}`;
+            document.getElementById('link_archivo_edit').href = `../../${data.ruta_archivo}`;
+
+            // Cargar select dependiente si aplica
+            if (data.tipo_acceso !== 'publico') {
+                cargarDestinosEditar(document.getElementById('edit_tipo_acceso'), data.id_referencia);
+            } else {
+                document.getElementById('div_referencia_edit').style.display = 'none';
+            }
+
+            // Mostrar el modal (Usando jQuery que viene con Bootstrap)
+            $('#modalEditarPlantilla').modal('show');
+        } else {
+            Swal.fire('Error', response.mensaje, 'error');
+        }
+    });
+}
+
+// 5. Cargar Destinos Dinámicos (Roles/Áreas)
+function cargarDestinosEditar(selectElement, idSeleccionado = null) {
+    const tipo = selectElement.value;
+    const divRef = document.getElementById('div_referencia_edit');
+    const selectRef = document.getElementById('select_referencia_edit');
+
+    if (tipo === 'publico') {
+        divRef.style.display = 'none';
+        selectRef.required = false;
+        return;
+    }
+
+    divRef.style.display = 'block';
+    selectRef.required = true;
+
+    fetch(`../../ajax/ajax_utilitarios.php?accion=listar_destinos&tipo=${tipo}`)
+    .then(res => res.json())
+    .then(data => {
+        selectRef.innerHTML = '<option value="">Seleccione...</option>';
+        data.forEach(item => {
+            let selected = (item.id == idSeleccionado) ? 'selected' : '';
+            selectRef.innerHTML += `<option value="${item.id}" ${selected}>${item.nombre}</option>`;
+        });
+    });
+}
+
+// 6. Previsualizar imagen nueva localmente en el modal
+document.getElementById('edit_imagen').onchange = evt => {
+    const [file] = evt.target.files;
+    if (file) document.getElementById('preview_edit').src = URL.createObjectURL(file);
+}
+
+// 7. Enviar datos editados al Backend
+document.getElementById('formEditarPlantilla').onsubmit = function(e) {
+    e.preventDefault();
+    let btn = document.getElementById('btnGuardarEdicion');
+    let textoOriginal = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+    fetch('../../ajax/ajax_plantillas.php?accion=editar', {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+
+        if (data.status === "ok") {
+            $('#modalEditarPlantilla').modal('hide'); // Cerramos el modal
+            Swal.fire('¡Actualizado!', data.mensaje, 'success');
+            cargarTablaPlantillas(); // Recargamos la tabla para ver los cambios
+        } else {
+            Swal.fire('Error', data.mensaje, 'error');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+        Swal.fire('Error', 'Problema de conexión.', 'error');
+    });
+};
 </script>

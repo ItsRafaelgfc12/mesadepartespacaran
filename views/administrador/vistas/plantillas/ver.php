@@ -1,6 +1,6 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-copy text-primary"></i> Directorio de Plantillas</h1>
-    <a href="index.php?vista=plantillas/subir" class="btn btn-primary btn-sm shadow-sm">
+    <a href="home.php?vista=plantillas/subirplantilla" class="btn btn-primary btn-sm shadow-sm">
         <i class="fas fa-plus fa-sm text-white-50"></i> Subir Nueva
     </a>
 </div>
@@ -33,24 +33,27 @@ function cargarPlantillas() {
         const contenedor = document.getElementById("contenedorPlantillas");
         contenedor.innerHTML = "";
 
-        if (!response.data || response.data.length === 0) {
+        // 🔥 CORRECCIÓN: Filtramos la data para quedarnos SOLO con las activas
+        const plantillasActivas = response.data ? response.data.filter(p => p.estado === 'activo') : [];
+
+        // Ahora evaluamos si hay plantillas activas, en lugar del total
+        if (plantillasActivas.length === 0) {
             contenedor.innerHTML = `<div class="col-12 text-center text-muted p-5">
                 <i class="fas fa-folder-open fa-3x mb-3"></i><br>No hay plantillas disponibles actualmente.
             </div>`;
             return;
         }
 
-        response.data.forEach(p => {
+        // Iteramos sobre el arreglo ya filtrado
+        plantillasActivas.forEach(p => {
             let fechaFormat = p.fecha_creacion ? p.fecha_creacion.split(' ')[0] : 'Sin fecha';
 
-            // 🔥 LÓGICA DE PERMISOS PARA EL BOTÓN ELIMINAR
             let esPropietario = (p.id_usuario == response.id_usuario_actual);
-            let esAdmin = (response.id_rol_actual == 1); // 1 = Administrador
+            let esAdmin = (response.id_rol_actual == 1); 
             
             let btnEliminar = '';
-            let claseBtnDescargar = 'w-100'; // Por defecto, descarga ocupa todo
+            let claseBtnDescargar = 'w-100'; 
 
-            // Si es dueño o admin, achicamos descarga y agregamos el botón eliminar
             if (esPropietario || esAdmin) {
                 claseBtnDescargar = 'w-75 mr-1'; 
                 btnEliminar = `

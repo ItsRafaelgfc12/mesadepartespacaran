@@ -3,22 +3,16 @@
 </h1>
 
 <div class="container-fluid">
-
     <div class="card shadow mb-4">
         <div class="card-body">
-
             <h5 class="text-center font-weight-bold mb-4">
                 FORMATO ÚNICO DE TRÁMITE (FUT)
             </h5>
-
                 <form id="formFut" enctype="multipart/form-data">
-                <!-- DEPENDENCIA -->
                 <div class="form-group">
                     <label><i class="fas fa-building"></i> Dependencia o autoridad</label>
-                    <input type="text" name="dependencia" class="form-control" placeholder="Ej: Dirección Académica" required>
+                    <input type="text" name="dependencia" class="form-control" placeholder="Ej: Sr. Director" required>
                 </div>
-
-                <!-- DATOS DEL SOLICITANTE -->
                 <div class="mb-4">
                     <h5 class="text-primary border-bottom pb-2">
                         <i class="fas fa-user"></i> 1. Datos del Solicitante
@@ -70,8 +64,7 @@
                     </div>
                 </div>
 
-                <!-- DETALLE -->
-                <div class="mb-4">
+                 <div class="mb-4">
                     <h5 class="text-primary border-bottom pb-2">
                         <i class="fas fa-file-signature"></i> 2. Detalle de la Solicitud
                     </h5>
@@ -87,20 +80,15 @@
                     </div>
                 </div>
 
-                <!-- FECHA Y ARCHIVOS -->
                 <div class="mb-4">
                     <h5 class="text-primary border-bottom pb-2">
                         <i class="fas fa-paperclip"></i> Información Adicional
                     </h5>
 
- 
-
                     <div class="form-group">
                         <label>
                             <i class="fas fa-file-pdf"></i> Documentos anexados (PDF)
                         </label>
-
-                        <input type="file" name="doc_anexado" class="form-control-file">
 
                         <small class="form-text text-muted">
                             Todos los documentos deben estar en un solo archivo PDF.
@@ -108,10 +96,11 @@
                                 Unir PDF aquí
                             </a>
                         </small>
+
+                        <input type="file" name="doc_anexado" class="form-control-file">
                     </div>
                 </div>
 
-                <!-- BOTONES -->
                 <div class="d-flex justify-content-between">
                     <a href="fut_listado.php" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Volver
@@ -131,8 +120,8 @@
 
 <script>
     function cargarUsuario(){
-
-    fetch('../../ajax/ajax_usuario.php')
+    // 🔥 EL CAMBIO ESTÁ AQUÍ: Agregamos ?accion=perfil
+    fetch('../../ajax/ajax_usuario.php?accion=DatosPersonalesFut')
     .then(res => res.json())
     .then(data => {
 
@@ -144,12 +133,14 @@
         document.getElementById("telefono").value = data.celular_usuario;
         document.getElementById("correo").value = data.email_per;
 
-    });
+    })
+    .catch(error => console.error("Error al cargar perfil:", error)); // Siempre es buena práctica capturar errores
 }
+
 document.addEventListener("DOMContentLoaded", function(){
 
-    cargarUsuario(); // ✅ ahora sí se ejecuta
-
+    cargarUsuario();
+    
     document.getElementById("formFut").addEventListener("submit", function(e){
         e.preventDefault();
 
@@ -173,12 +164,16 @@ document.addEventListener("DOMContentLoaded", function(){
                 });
 
                 this.reset();
-                cargarUsuario(); // 🔥 recarga datos
+                cargarUsuario(); // Vuelve a llenar los datos del usuario tras limpiar el form
 
             } else {
                 Swal.fire('Error', data.msg, 'error');
             }
 
+        })
+        .catch(error => {
+            console.error("Error al enviar FUT:", error);
+            Swal.fire('Error', 'Problema de conexión al enviar el formulario', 'error');
         });
 
     });
