@@ -43,6 +43,9 @@ switch ($accion) {
     case 'enviar_solicitud_acceso':
         echo json_encode($controlador->enviarSolicitudAcceso($_POST));
         break;
+    case 'editar_expediente':
+        echo json_encode($controlador->editarExpediente($_POST));
+        break;
     default:
         echo json_encode(["status" => "error", "mensaje" => "Acción no reconocida en Expedientes."]);
         break;

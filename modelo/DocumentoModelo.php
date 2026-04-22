@@ -217,20 +217,21 @@ class DocumentoModelo {
     public function obtenerSeguimiento($id_doc) {
         global $conn;
         
-        // 1. Obtener Historial con el archivo exacto de CADA usuario
         $sqlHist = "SELECT h.tipo_evento, h.observacion, h.fecha, u.nombres_usuario,
-                           /* Buscar si este usuario subió su RESPUESTA FINAL (Archivado) en este momento */
+                           /* 1. Archivo de Respuesta (Final) */
                            (SELECT a.ruta_archivo_final FROM documento_archivo a 
-                            WHERE a.id_documento = h.id_documento 
-                              AND a.id_usuario = h.id_usuario 
-                              AND ABS(TIMESTAMPDIFF(SECOND, a.fecha_archivado, h.fecha)) < 15 
-                            LIMIT 1) as archivo_final,
-                           /* Buscar si este usuario subió un ANEXO al derivar en este momento */
+                            WHERE a.id_documento = h.id_documento AND a.id_usuario = h.id_usuario 
+                            AND ABS(TIMESTAMPDIFF(SECOND, a.fecha_archivado, h.fecha)) < 15 LIMIT 1) as archivo_final,
+                           
+                           /* 2. Archivo de Derivación (Anexo) */
                            (SELECT da.ruta_archivo FROM documento_adjuntos da 
-                            WHERE da.id_documento = h.id_documento 
-                              AND da.tipo = 'anexo' 
-                              AND ABS(TIMESTAMPDIFF(SECOND, da.fecha_subida, h.fecha)) < 15 
-                            LIMIT 1) as archivo_anexo
+                            WHERE da.id_documento = h.id_documento AND da.tipo = 'anexo' 
+                            AND ABS(TIMESTAMPDIFF(SECOND, da.fecha_subida, h.fecha)) < 15 LIMIT 1) as archivo_anexo,
+                           
+                           /* 3. Archivo Inicial (El primero del documento) */
+                           (SELECT dp.ruta_archivo FROM documento_adjuntos dp 
+                            WHERE dp.id_documento = h.id_documento AND dp.tipo != 'anexo' 
+                            ORDER BY dp.id_adjunto ASC LIMIT 1) as archivo_principal
                     FROM documento_historial h
                     LEFT JOIN usuario u ON u.id_usuario = h.id_usuario
                     WHERE h.id_documento = ? 
@@ -240,6 +241,7 @@ class DocumentoModelo {
         $stmt1->bind_param("i", $id_doc);
         $stmt1->execute();
         $hist = $stmt1->get_result()->fetch_all(MYSQLI_ASSOC);
+
 
         // 2. Mantener la consulta de derivaciones que ya tenías
         $stmt2 = $conn->prepare("SELECT d.tipo_destino, d.estado, d.fecha_envio,
@@ -334,8 +336,10 @@ class DocumentoModelo {
                 $stmtDer->execute();
             }
 
-            $stmtHist = $conn->prepare("INSERT INTO documento_historial (id_documento, id_usuario, tipo_evento, observacion) VALUES (?, ?, 'creado', 'Doc interno enviado')");
-            $stmtHist->bind_param("ii", $id_doc, $id_emisor);
+            // Busca esta parte en registrarDocumentoInterno y cámbiala:
+            $stmtHist = $conn->prepare("INSERT INTO documento_historial (id_documento, id_usuario, tipo_evento, observacion) VALUES (?, ?, 'creado', ?)");
+            // Usamos $post['descripcion'] para que el mensaje del remitente sea el primer hito del historial
+            $stmtHist->bind_param("iis", $id_doc, $id_emisor, $post['descripcion']); 
             $stmtHist->execute();
 
             $conn->commit();

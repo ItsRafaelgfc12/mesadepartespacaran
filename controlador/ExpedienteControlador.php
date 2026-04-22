@@ -81,7 +81,13 @@ class ExpedienteControlador {
         return $this->modelo->procesarSolicitudAcceso($post['id_solicitud'], $post['id_expediente'], $post['estado'], $id_admin);
     }
     public function listarPublicos() {
-        return ["data" => $this->modelo->listarPublicos()];
+        if (session_status() == PHP_SESSION_NONE) session_start();
+        $id_usuario = $_SESSION['id_usuario'] ?? 0;
+        $id_rol     = $_SESSION['id_rol'] ?? 0;
+        $cargos_ids = $_SESSION['cargos_ids'] ?? '0';
+        $areas_ids  = $_SESSION['areas_ids'] ?? '0';
+
+        return ["data" => $this->modelo->listarPublicos($id_usuario, $id_rol, $areas_ids, $cargos_ids)];
     }
 
     public function enviarSolicitudAcceso($post) {
@@ -92,6 +98,14 @@ class ExpedienteControlador {
         if (empty(trim($post['mensaje']))) return ["status" => "error", "mensaje" => "El motivo es obligatorio."];
 
         return $this->modelo->enviarSolicitudAcceso($post['id_expediente'], $id_usuario, $post['mensaje']);
+    }
+    public function editarExpediente($post) {
+        if (session_status() == PHP_SESSION_NONE) session_start();
+        $id_admin = $_SESSION['id_usuario'] ?? 0;
+        
+        if ($id_admin == 0) return ["status" => "error", "mensaje" => "Sesión inválida"];
+        
+        return $this->modelo->editarExpediente($post['id_expediente'], $post['asunto'], $post['estado'], $post['tipo'], $id_admin);
     }
 }
 

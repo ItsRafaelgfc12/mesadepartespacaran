@@ -397,19 +397,27 @@ function verSeguimiento(idDoc) {
         let timeline = [];
 
         // 1. Procesar Historial (Eventos individuales de cada docente)
+        // Dentro de tu fetch de seguimiento, actualiza el procesamiento del historial:
         if (data.historial) {
             data.historial.forEach(item => {
-                // Priorizamos archivo_final (si archivó) o archivo_anexo (si derivó con adjunto)
-                let archivoDelEvento = item.archivo_final || item.archivo_anexo || item.archivo_historial;
+                // Lógica de prioridad de archivos:
+                let archivoAMostrar = null;
+                
+                if (item.tipo_evento === 'creado') {
+                    archivoAMostrar = item.archivo_principal; // El documento que originó todo
+                } else {
+                    archivoAMostrar = item.archivo_final || item.archivo_anexo;
+                }
 
                 timeline.push({
                     fecha: item.fecha,
-                    titulo: item.tipo_evento.toUpperCase(),
-                    obs: item.observacion,
+                    titulo: item.tipo_evento === 'creado' ? 'DOCUMENTO INICIAL' : item.tipo_evento.toUpperCase(),
+                    obs: item.observacion, // Aquí ahora saldrá la descripción real
                     usuario: item.nombres_usuario,
-                    archivo: archivoDelEvento, 
-                    color: item.tipo_evento === 'atendido' ? 'warning' : 
-                           (item.tipo_evento === 'archivado' ? 'danger' : 'info')
+                    archivo: archivoAMostrar,
+                    color: item.tipo_evento === 'creado' ? 'success' : 
+                        (item.tipo_evento === 'atendido' ? 'warning' : 
+                        (item.tipo_evento === 'archivado' ? 'danger' : 'info'))
                 });
             });
         }

@@ -173,34 +173,34 @@ class FutModelo {
     }
 
     public function listarMisFuts(){
+        global $conn;
 
-    global $conn;
+        $id_usuario = $_SESSION['id_usuario'];
 
-    $id_usuario = $_SESSION['id_usuario'];
+        // 🔥 CORRECCIÓN: Agregamos "AND id_tipo = 1" para filtrar solo los FUTs
+        $stmt = $conn->prepare("SELECT 
+            id_documento,
+            codigo_documento,
+            asunto,
+            estado,
+            fecha_emision
+        FROM documento 
+        WHERE id_usuario_emisor = ? AND id_tipo = 1
+        ORDER BY id_documento DESC");
 
-    $stmt = $conn->prepare("SELECT 
-        id_documento,
-        codigo_documento,
-        asunto,
-        estado,
-        fecha_emision
-    FROM documento 
-    WHERE id_usuario_emisor = ?
-    ORDER BY id_documento DESC");
+        $stmt->bind_param("i", $id_usuario);
+        $stmt->execute();
 
-    $stmt->bind_param("i", $id_usuario);
-    $stmt->execute();
+        $result = $stmt->get_result();
 
-    $result = $stmt->get_result();
+        $data = [];
 
-    $data = [];
+        while($row = $result->fetch_assoc()){
+            $data[] = $row;
+        }
 
-    while($row = $result->fetch_assoc()){
-        $data[] = $row;
+        return $data;
     }
-
-    return $data;
-}
 public function historial($id_documento) {
     global $conn;
 
