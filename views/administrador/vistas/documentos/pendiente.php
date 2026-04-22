@@ -396,21 +396,33 @@ function verSeguimiento(idDoc) {
         container.innerHTML = "";
         let timeline = [];
 
-        // Procesar Historial (Eventos)
+        // 1. Procesar Historial (Eventos individuales de cada docente)
+        // Dentro de tu fetch de seguimiento, actualiza el procesamiento del historial:
         if (data.historial) {
             data.historial.forEach(item => {
+                // Lógica de prioridad de archivos:
+                let archivoAMostrar = null;
+                
+                if (item.tipo_evento === 'creado') {
+                    archivoAMostrar = item.archivo_principal; // El documento que originó todo
+                } else {
+                    archivoAMostrar = item.archivo_final || item.archivo_anexo;
+                }
+
                 timeline.push({
                     fecha: item.fecha,
-                    titulo: item.tipo_evento.toUpperCase(),
-                    obs: item.observacion,
+                    titulo: item.tipo_evento === 'creado' ? 'DOCUMENTO INICIAL' : item.tipo_evento.toUpperCase(),
+                    obs: item.observacion, // Aquí ahora saldrá la descripción real
                     usuario: item.nombres_usuario,
-                    archivo: item.archivo_historial, // Archivo final del archivado
-                    color: item.tipo_evento === 'atendido' ? 'warning' : (item.tipo_evento === 'archivado' ? 'dark' : 'info')
+                    archivo: archivoAMostrar,
+                    color: item.tipo_evento === 'creado' ? 'success' : 
+                        (item.tipo_evento === 'atendido' ? 'warning' : 
+                        (item.tipo_evento === 'archivado' ? 'danger' : 'info'))
                 });
             });
         }
 
-        // Procesar Derivaciones
+        // 2. Procesar Derivaciones (Flujo del sistema)
         if (data.derivaciones) {
             data.derivaciones.forEach(item => {
                 timeline.push({
@@ -418,21 +430,21 @@ function verSeguimiento(idDoc) {
                     titulo: `DERIVADO A: ${item.destino_nombre}`,
                     obs: `Estado: ${item.estado.toUpperCase()}`,
                     usuario: 'Sistema',
-                    archivo: item.archivo_adjunto, // Archivo adjunto en la derivación
+                    archivo: item.archivo_adjunto, 
                     color: 'primary'
                 });
             });
         }
 
-        // Ordenar por fecha descendente
+        // 3. Ordenar por fecha descendente (Lo más reciente arriba)
         timeline.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
+        // 4. Renderizar el HTML
         timeline.forEach(item => {
-            // Generar icono de archivo si existe
             let htmlArchivo = item.archivo 
                 ? `<div class="mt-2">
                     <a href="../../${item.archivo}" target="_blank" class="btn btn-sm btn-outline-danger">
-                        <i class="fas fa-file-download"></i> Ver Adjunto
+                        <i class="fas fa-file-pdf"></i> Ver Documento Adjunto
                     </a>
                    </div>` 
                 : '';

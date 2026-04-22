@@ -27,7 +27,6 @@ switch ($accion) {
         echo json_encode($controlador->listarAtendidos());
         break;
 
-    // Solo un case para archivar, pasando POST y FILES
     case 'archivar_documento':
         echo json_encode($controlador->archivarDocumento($_POST, $_FILES));
         break;
@@ -35,15 +34,20 @@ switch ($accion) {
     case 'listar_archivados':
         echo json_encode($controlador->listarArchivados());
         break;
+
+    // ESTA ES LA RUTA QUE USA EL NUEVO FORMULARIO MÚLTIPLE/ÚNICO
     case 'registrar_documento_interno':
         echo json_encode($controlador->registrarDocumentoInterno($_POST, $_FILES));
         break;
+
     case 'listar_historial_enviados':
         echo json_encode($controlador->listarHistorialEnviados());
         break;
+
     case 'liberar_documento':
         echo json_encode($controlador->liberarDocumento($_POST));
         break;
+
     default:
         echo json_encode(["error" => "Acción no reconocida"]);
         break;

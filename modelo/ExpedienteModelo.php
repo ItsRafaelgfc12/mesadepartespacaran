@@ -400,17 +400,43 @@ class ExpedienteModelo {
     // ==========================================
     // EXPEDIENTES PÚBLICOS Y SOLICITUDES
     // ==========================================
-    public function listarPublicos() {
+    public function listarPublicos($id_usuario, $id_rol, $areas_ids, $cargos_ids) {
         global $conn;
-        // Traemos todos los públicos, incluyendo el nombre de quién lo creó
         $sql = "SELECT e.id_expediente, e.codigo_expediente, e.asunto, e.estado, 
                        DATE_FORMAT(e.fecha_creacion, '%d/%m/%Y') as fecha_creacion,
-                       CONCAT(u.nombres_usuario, ' ', u.apellidos_usuario) as responsable
+                       CONCAT(u.nombres_usuario, ' ', u.apellidos_usuario) as responsable,
+                       
+                       /* 1. ¿Ya tiene una solicitud en espera? */
+                       (SELECT COUNT(*) FROM expediente_solicitud s 
+                        WHERE s.id_expediente = e.id_expediente 
+                        AND s.id_usuario_solicitante = ? AND s.estado = 'pendiente') as solicitud_pendiente,
+                       
+                       /* 2. ¿Ya es el dueño o ya tiene acceso por algún rol/cargo? */
+                       CASE 
+                           WHEN e.id_usuario_responsable = ? THEN 1
+                           WHEN EXISTS (
+                               SELECT 1 FROM expediente_acceso a 
+                               WHERE a.id_expediente = e.id_expediente 
+                               AND (
+                                   (a.tipo_acceso = 'usuario' AND a.id_referencia = ?) OR
+                                   (a.tipo_acceso = 'rol' AND a.id_referencia = ?) OR
+                                   (a.tipo_acceso = 'area' AND FIND_IN_SET(a.id_referencia, ?) > 0) OR
+                                   (a.tipo_acceso = 'cargo' AND FIND_IN_SET(a.id_referencia, ?) > 0)
+                               )
+                           ) THEN 1
+                           ELSE 0
+                       END as ya_tengo_acceso
+
                 FROM expediente e
                 LEFT JOIN usuario u ON e.id_usuario_responsable = u.id_usuario
                 WHERE e.tipo = 'publico'
                 ORDER BY e.id_expediente DESC";
-        return $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
+        
+        $stmt = $conn->prepare($sql);
+        // Pasamos los parámetros en orden: i=entero, s=string
+        $stmt->bind_param("iiiiss", $id_usuario, $id_usuario, $id_usuario, $id_rol, $areas_ids, $cargos_ids);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
     public function enviarSolicitudAcceso($id_expediente, $id_usuario, $mensaje) {
@@ -426,12 +452,38 @@ class ExpedienteModelo {
 
         // 2. Insertar nueva solicitud
         $stmt = $conn->prepare("INSERT INTO expediente_solicitud (id_expediente, id_usuario_solicitante, mensaje, estado) VALUES (?, ?, ?, 'pendiente')");
-        $stmt->bind_param("iis", $id_expediente, $id_usuario, trim($mensaje));
+        
+        // 🔥 EL ARREGLO: Limpiamos el mensaje en una variable antes del bind_param
+        $mensaje_limpio = trim($mensaje);
+        $stmt->bind_param("iis", $id_expediente, $id_usuario, $mensaje_limpio);
         
         if ($stmt->execute()) {
             return ["status" => "ok", "mensaje" => "Tu solicitud ha sido enviada al responsable del expediente."];
         } else {
             return ["status" => "error", "mensaje" => "No se pudo enviar la solicitud."];
+        }
+    }
+    // ==========================================
+    // EDITAR EXPEDIENTE
+    // ==========================================
+    public function editarExpediente($id_expediente, $asunto, $estado, $tipo, $id_usuario_admin) {
+        global $conn;
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("UPDATE expediente SET asunto = ?, estado = ?, tipo = ? WHERE id_expediente = ?");
+            $stmt->bind_param("sssi", $asunto, $estado, $tipo, $id_expediente);
+            $stmt->execute();
+
+            $obs = "Expediente actualizado: Asunto a '$asunto', Estado a '$estado', Privacidad a '$tipo'.";
+            $stmtH = $conn->prepare("INSERT INTO expediente_historial (id_expediente, id_usuario, tipo_evento, observacion) VALUES (?, ?, 'modificado', ?)");
+            $stmtH->bind_param("iis", $id_expediente, $id_usuario_admin, $obs);
+            $stmtH->execute();
+
+            $conn->commit();
+            return ["status" => "ok", "mensaje" => "Expediente actualizado correctamente."];
+        } catch (Exception $e) {
+            $conn->rollback();
+            return ["status" => "error", "mensaje" => $e->getMessage()];
         }
     }
 }

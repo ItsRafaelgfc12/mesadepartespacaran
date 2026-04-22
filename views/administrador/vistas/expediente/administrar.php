@@ -41,14 +41,24 @@
                         <input type="text" name="asunto" id="edit_asunto" class="form-control" required>
                     </div>
 
-                    <div class="form-group">
-                        <label>Estado del Expediente</label>
-                        <select name="estado" id="edit_estado" class="form-control" required>
-                            <option value="activo">Activo (Recibiendo documentos)</option>
-                            <option value="en_proceso">En Proceso (En evaluación)</option>
-                            <option value="finalizado">Finalizado (Resuelto, pero visible)</option>
-                            <option value="archivado">Archivado (Cerrado permanentemente)</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Estado del Expediente</label>
+                            <select name="estado" id="edit_estado" class="form-control" required>
+                                <option value="activo">Activo (Recibiendo docs)</option>
+                                <option value="en_proceso">En Proceso (Evaluación)</option>
+                                <option value="finalizado">Finalizado (Resuelto)</option>
+                                <option value="archivado">Archivado (Cerrado)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Privacidad</label>
+                            <select name="tipo" id="edit_tipo" class="form-control" required>
+                                <option value="privado">Privado (Solo yo)</option>
+                                <option value="compartido">Compartido (Usuarios específicos)</option>
+                                <option value="publico">Público (Visible para todos)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -263,13 +273,17 @@ function cargarMisExpedientes() {
 
             // Si es dueño o administrador, tiene control total
             if (exp.mi_permiso === 'propietario' || exp.mi_permiso === 'administrador') {
-                btnAccesos = exp.tipo === 'compartido' 
-                    ? `<button class="btn btn-success btn-sm" onclick="abrirAccesos(${exp.id_expediente})" title="Administrar Accesos"><i class="fas fa-users-cog"></i></button>`
-                    : `<button class="btn btn-secondary btn-sm" disabled title="No aplica para expedientes ${exp.tipo}s"><i class="fas fa-users-slash"></i></button>`;
                 
-                btnEditar = `<button class="btn btn-warning btn-sm" onclick="abrirEditarExpediente(${exp.id_expediente}, '${exp.asunto}', '${exp.estado}')" title="Editar Expediente"><i class="fas fa-edit"></i></button>`;
+                // 🔥 EL ARREGLO: Desbloqueamos el botón si es Compartido O Público
+                if (exp.tipo === 'compartido' || exp.tipo === 'publico') {
+                    btnAccesos = `<button class="btn btn-success btn-sm" onclick="abrirAccesos(${exp.id_expediente})" title="Administrar Accesos y Solicitudes"><i class="fas fa-users-cog"></i></button>`;
+                } else {
+                    btnAccesos = `<button class="btn btn-secondary btn-sm" disabled title="No aplica para expedientes Privados"><i class="fas fa-users-slash"></i></button>`;
+                }
+                
+                btnEditar = `<button class="btn btn-warning btn-sm" onclick="abrirEditarExpediente(${exp.id_expediente}, '${exp.asunto}', '${exp.estado}', '${exp.tipo}')" title="Editar Expediente"><i class="fas fa-edit"></i></button>`;
             } else {
-                // Si es solo Lectura o Edición, bloqueamos la administración de accesos y la edición del nombre
+                // Si es solo Lectura o Edición, bloqueamos la administración total
                 btnAccesos = `<button class="btn btn-secondary btn-sm" disabled title="Solo administradores pueden gestionar accesos"><i class="fas fa-lock"></i></button>`;
                 btnEditar = `<button class="btn btn-secondary btn-sm" disabled title="Solo administradores pueden editar el expediente"><i class="fas fa-lock"></i></button>`;
             }
@@ -296,10 +310,11 @@ function cargarMisExpedientes() {
     .catch(err => console.error("Error cargando expedientes:", err));
 }
 
-function abrirEditarExpediente(id, asunto, estado) {
+function abrirEditarExpediente(id, asunto, estado, tipo) {
     document.getElementById('edit_id_expediente').value = id;
     document.getElementById('edit_asunto').value = asunto;
     document.getElementById('edit_estado').value = estado;
+    document.getElementById('edit_tipo').value = tipo; // <-- Nuevo campo
     $('#modalEditarExpediente').modal('show');
 }
 
@@ -506,4 +521,42 @@ function procesarSolicitud(id_solicitud, id_expediente, accion_estado) {
         } else Swal.fire('Error', data.mensaje, 'error');
     });
 }
+// ==========================================
+// GUARDAR EDICIÓN DE EXPEDIENTE
+// ==========================================
+document.getElementById('formEditarExpediente').onsubmit = function(e) {
+    e.preventDefault(); // 🔥 ESTO ES LO QUE EVITA QUE TE MANDE AL HOME
+
+    let btn = this.querySelector('button[type="submit"]');
+    let textoOriginal = btn.innerHTML;
+    
+    // Bloqueamos el botón mientras carga
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+    fetch('../../ajax/ajax_expedientes.php?accion=editar_expediente', {
+        method: 'POST',
+        body: new FormData(this)
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Restauramos el botón
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+
+        if(data.status === 'ok') {
+            Swal.fire('Actualizado', data.mensaje, 'success');
+            $('#modalEditarExpediente').modal('hide'); // Cierra la ventana
+            cargarMisExpedientes(); // Actualiza la tabla en tiempo real
+        } else {
+            Swal.fire('Error', data.mensaje, 'error');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+        console.error("Error Fetch:", err);
+        Swal.fire('Error', 'Problema de conexión con el servidor.', 'error');
+    });
+};
 </script>

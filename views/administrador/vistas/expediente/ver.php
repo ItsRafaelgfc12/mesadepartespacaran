@@ -85,7 +85,7 @@
                 <div class="modal-body">
                     <input type="hidden" name="id_expediente" id="sol_id_expediente">
                     <div class="alert alert-info small">
-                        El responsable evaluará tu solicitud. Una vez aprobada, este expediente aparecerá en tu pestaña de "Mis Expedientes".
+                        El responsable evaluará tu solicitud. Una vez aprobada, este expediente aparecerá en tu pestaña de "Mis Expedientes" con los permisos correspondientes.
                     </div>
                     <div class="form-group">
                         <label class="font-weight-bold">Motivo de la Solicitud</label>
@@ -94,7 +94,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning text-dark"><i class="fas fa-paper-plane"></i> Enviar Solicitud</button>
+                    <button type="submit" id="btnEnviarSolicitud" class="btn btn-warning text-dark"><i class="fas fa-paper-plane"></i> Enviar Solicitud</button>
                 </div>
             </form>
         </div>
@@ -103,10 +103,13 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    cargarPublicos();
+    cargarExpedientesPublicos();
 });
 
-function cargarPublicos() {
+// ==========================================
+// 1. CARGAR LA TABLA DE EXPEDIENTES PÚBLICOS
+// ==========================================
+function cargarExpedientesPublicos() {
     fetch('../../ajax/ajax_expedientes.php?accion=listar_publicos')
     .then(res => res.json())
     .then(response => {
@@ -124,21 +127,32 @@ function cargarPublicos() {
             if (exp.estado === 'finalizado') badgeEstado = 'info';
             if (exp.estado === 'archivado') badgeEstado = 'dark';
 
+            // LÓGICA INTELIGENTE DE BOTONES
+            let btnAcceso = '';
+            
+            if (exp.ya_tengo_acceso == 1) {
+                btnAcceso = `<button class="btn btn-secondary btn-sm" disabled title="Ya tienes acceso a este expediente"><i class="fas fa-check-circle"></i> Eres Miembro</button>`;
+            } else if (exp.solicitud_pendiente > 0) {
+                btnAcceso = `<button class="btn btn-warning btn-sm" disabled title="Tu solicitud está en revisión"><i class="fas fa-hourglass-half"></i> Solicitud Pendiente</button>`;
+            } else {
+                btnAcceso = `<button class="btn btn-primary btn-sm" onclick="abrirSolicitud(${exp.id_expediente})" title="Solicitar permiso de edición"><i class="fas fa-hand-paper"></i> Pedir Acceso</button>`;
+            }
+
+            let btnParticipantes = `<button class="btn btn-info btn-sm" onclick="verParticipantesPublico(${exp.id_expediente}, '${exp.responsable}')" title="Ver Participantes"><i class="fas fa-users"></i></button>`;
+            let btnVerDocs = `<button class="btn btn-success btn-sm" onclick="verDetallesPublicos(${exp.id_expediente})" title="Explorar Archivos"><i class="fas fa-folder-open"></i></button>`;
+
             tbody.innerHTML += `
                 <tr>
-                    <td><strong>${exp.codigo_expediente}</strong></td>
-                    <td>${exp.asunto}</td>
-                    <td class="small text-muted"><i class="fas fa-user-tie"></i> ${exp.responsable}</td>
-                    <td><span class="badge badge-${badgeEstado}">${exp.estado.toUpperCase()}</span></td>
-                    <td class="small">${exp.fecha_creacion}</td>
-                    <td class="text-center">
+                    <td class="align-middle"><strong>${exp.codigo_expediente}</strong></td>
+                    <td class="align-middle">${exp.asunto}</td>
+                    <td class="align-middle small text-muted"><i class="fas fa-user-tie"></i> ${exp.responsable}</td>
+                    <td class="align-middle"><span class="badge badge-${badgeEstado}">${exp.estado.toUpperCase()}</span></td>
+                    <td class="align-middle small">${exp.fecha_creacion}</td>
+                    <td class="text-center align-middle">
                         <div class="btn-group">
-                            <button class="btn btn-info btn-sm" onclick="verDetallesPublicos(${exp.id_expediente})" title="Explorar Archivos">
-                                <i class="fas fa-folder-open"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm text-dark" onclick="abrirSolicitud(${exp.id_expediente})" title="Solicitar Acceso">
-                                <i class="fas fa-hand-paper"></i> Pedir Acceso
-                            </button>
+                            ${btnVerDocs}
+                            ${btnParticipantes}
+                            ${btnAcceso}
                         </div>
                     </td>
                 </tr>`;
@@ -146,8 +160,10 @@ function cargarPublicos() {
     });
 }
 
+// ==========================================
+// 2. EXPLORADOR READ-ONLY (VER DETALLES)
+// ==========================================
 function verDetallesPublicos(id_expediente) {
-    // Reutilizamos el endpoint de detalles que ya creamos antes
     fetch(`../../ajax/ajax_expedientes.php?accion=obtener_detalles&id=${id_expediente}`)
     .then(res => res.json())
     .then(data => {
@@ -187,6 +203,40 @@ function verDetallesPublicos(id_expediente) {
     });
 }
 
+// ==========================================
+// 3. TRANSPARENCIA (VER PARTICIPANTES)
+// ==========================================
+function verParticipantesPublico(id_expediente, responsable) {
+    fetch(`../../ajax/ajax_expedientes.php?accion=obtener_accesos&id=${id_expediente}`)
+    .then(res => res.json())
+    .then(data => {
+        let listaHTML = `<div class="text-left mb-3"><strong><i class="fas fa-crown text-warning"></i> Creador/Responsable:</strong> ${responsable}</div>`;
+        listaHTML += `<ul class="list-group text-left text-sm">`;
+        
+        if (data.length === 0) {
+            listaHTML += `<li class="list-group-item text-muted">Aún no hay otros participantes asignados a este expediente.</li>`;
+        } else {
+            data.forEach(acc => {
+                listaHTML += `<li class="list-group-item">
+                    <b>${acc.nombre_destino}</b> <br>
+                    <small class="text-muted text-capitalize">Tipo: ${acc.tipo_acceso} | Permiso: ${acc.permiso}</small>
+                </li>`;
+            });
+        }
+        listaHTML += `</ul>`;
+
+        Swal.fire({
+            title: 'Participantes del Expediente',
+            html: listaHTML,
+            icon: 'info',
+            confirmButtonText: 'Cerrar'
+        });
+    });
+}
+
+// ==========================================
+// 4. SOLICITAR ACCESO (CON CONTROL DE FREEZE)
+// ==========================================
 function abrirSolicitud(id_expediente) {
     document.getElementById('sol_id_expediente').value = id_expediente;
     document.getElementById('formSolicitarAcceso').reset();
@@ -195,8 +245,11 @@ function abrirSolicitud(id_expediente) {
 
 document.getElementById('formSolicitarAcceso').onsubmit = function(e) {
     e.preventDefault();
-    const btn = this.querySelector('button[type="submit"]');
+    let btn = document.getElementById('btnEnviarSolicitud');
+    
+    // Bloqueamos para evitar doble clic
     btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
     fetch('../../ajax/ajax_expedientes.php?accion=enviar_solicitud_acceso', {
         method: 'POST',
@@ -204,13 +257,24 @@ document.getElementById('formSolicitarAcceso').onsubmit = function(e) {
     })
     .then(res => res.json())
     .then(data => {
+        // Restauramos el botón SIEMPRE
         btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Solicitud';
+
         if (data.status === "ok") {
-            Swal.fire('Enviado', data.mensaje, 'success');
+            Swal.fire('¡Enviado!', data.mensaje, 'success');
             $('#modalSolicitarAcceso').modal('hide');
+            this.reset();
+            cargarExpedientesPublicos(); // Actualiza la tabla para mostrar "Solicitud Pendiente"
         } else {
-            Swal.fire('Aviso', data.mensaje, 'warning');
+            Swal.fire('Error', data.mensaje, 'error');
         }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Solicitud';
+        console.error("Error de Fetch:", err);
+        Swal.fire('Error', 'Problema de conexión con el servidor.', 'error');
     });
 };
 </script>
